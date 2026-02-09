@@ -59,7 +59,7 @@ function Header() {
 
           {/* CATEGORY */}
           <div className="dropdown me-3 d-none d-lg-block">
-            <button className="btn btn-light border dropdown-toggle" data-bs-toggle="dropdown">
+            <button className="btn border border-2 border-bg-gray-700 dropdown-toggle" data-bs-toggle="dropdown">
               <i className="bi bi-list me-2"></i>
               Category
             </button>
