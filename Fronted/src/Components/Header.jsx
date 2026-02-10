@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/Images/imgi_2_logo.png';
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 function Header() {
   return (
@@ -64,14 +62,14 @@ function Header() {
               Category
             </button>
             <ul className="dropdown-menu">
-              <li><Link className="dropdown-item">Develpment</Link></li>
-              <li><Link className="dropdown-item">Marketing</Link></li>
-              <li><Link className="dropdown-item">Photography</Link></li>
-              <li><Link className="dropdown-item">Life Style</Link></li>
-              <li><Link className="dropdown-item">Health & Fitness</Link></li>
-              <li><Link className="dropdown-item">Datascience</Link></li>
-              <li><Link className="dropdown-item">Marketing</Link></li>
-              <li><Link className="dropdown-item">Photography</Link></li>
+              <li><button className="dropdown-item" type="button">Development</button></li>
+              <li><button className="dropdown-item" type="button">Marketing</button></li>
+              <li><button className="dropdown-item" type="button">Photography</button></li>
+              <li><button className="dropdown-item" type="button">Life Style</button></li>
+              <li><button className="dropdown-item" type="button">Health &amp; Fitness</button></li>
+              <li><button className="dropdown-item" type="button">Data Science</button></li>
+              <li><button className="dropdown-item" type="button">Marketing</button></li>
+              <li><button className="dropdown-item" type="button">Photography</button></li>
             </ul>
           </div>
 
@@ -322,8 +320,7 @@ function Header() {
                   type="button"
                   data-bs-toggle="dropdown"
                   data-bs-auto-close="outside"
-                  aria-expanded="false"
-                >
+                  aria-expanded="false">
                   Elements
                 </button>
 
@@ -364,8 +361,7 @@ function Header() {
                   className="nav-link dropdown-toggle btn btn-link"
                   type="button"
                   data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
+                  aria-expanded="false">
                   Blog
                 </button>
                 <ul className="dropdown-menu">
@@ -385,7 +381,7 @@ function Header() {
               <div className="position-relative">
                 <i className="bi bi-cart fs-5"></i>
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                  3
+                  0
                 </span>
               </div>
 

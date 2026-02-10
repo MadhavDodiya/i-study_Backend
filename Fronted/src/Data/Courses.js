@@ -1,0 +1,135 @@
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+
+const courses = [
+  {
+    img: course1,
+    lessons: 45,
+    students: 520,
+    title: "Master Data Science from Scratch",
+    desc: "Empower your career with data science skills.",
+    rating: "4.8",
+    // badge: "20% Off",
+
+    hoverTitle: "Advanced Data Science Techniques",
+    level: "Intermediate",
+    price: "$250",
+    oldPrice: "$300",
+    desc1: "",
+  },
+  {
+    img: course2,
+    lessons: 30,
+    students: 750,
+    title: "Complete Guide to Web Development",
+    desc: "Learn HTML CSS JS from scratch.",
+    rating: "4.7",
+    // badge: "FREE",
+
+    hoverTitle: "JavaScript For Beginners",
+    level: "Beginner",
+    price: "$0",
+    oldPrice: "",
+  },
+  {
+    img: course3,
+    lessons: 40,
+    students: 620,
+    title: "Digital Marketing Masterclass",
+    desc: "Become expert in SEO marketing.",
+    rating: "5.0",
+    // badge: "10% Off",
+
+    hoverTitle: "Marketing Advanced",
+    level: "Advanced",
+    price: "$120",
+    oldPrice: "$150",
+  },
+  {
+    img: course1,
+    lessons: 45,
+    students: 520,
+    title: "Master Data Science from Scratch",
+    desc: "Empower your career with data science skills.",
+    rating: "4.8",
+    // badge: "20% Off",
+
+    hoverTitle: "Advanced Data Science Techniques",
+    level: "Intermediate",
+    price: "$250",
+    oldPrice: "$300",
+  },
+  {
+    img: course2,
+    lessons: 30,
+    students: 750,
+    title: "Complete Guide to Web Development",
+    desc: "Learn HTML CSS JS from scratch.",
+    rating: "4.7",
+    // badge: "FREE",
+
+    hoverTitle: "JavaScript For Beginners",
+    level: "Beginner",
+    price: "$0",
+    oldPrice: "",
+  },
+  {
+    img: course3,
+    lessons: 40,
+    students: 620,
+    title: "Digital Marketing Masterclass",
+    desc: "Become expert in SEO marketing.",
+    rating: "5.0",
+    // badge: "10% Off",
+
+    hoverTitle: "Marketing Advanced",
+    level: "Advanced",
+    price: "$120",
+    oldPrice: "$150",
+  },
+  {
+    img: course1,
+    lessons: 45,
+    students: 520,
+    title: "Master Data Science from Scratch",
+    desc: "Empower your career with data science skills.",
+    rating: "4.8",
+    // badge: "20% Off",
+
+    hoverTitle: "Advanced Data Science Techniques",
+    level: "Intermediate",
+    price: "$250",
+    oldPrice: "$300",
+  },
+  {
+    img: course2,
+    lessons: 30,
+    students: 750,
+    title: "Complete Guide to Web Development",
+    desc: "Learn HTML CSS JS from scratch.",
+    rating: "4.7",
+    // badge: "FREE",
+
+    hoverTitle: "JavaScript For Beginners",
+    level: "Beginner",
+    price: "$0",
+    oldPrice: "",
+  },
+  {
+    img: course3,
+    lessons: 40,
+    students: 620,
+    title: "Digital Marketing Masterclass",
+    desc: "Become expert in SEO marketing.",
+    rating: "5.0",
+    // badge: "10% Off",
+
+    hoverTitle: "Marketing Advanced",
+    level: "Advanced",
+    price: "$120",
+    oldPrice: "$150",
+  },
+];
+
+export default courses;
