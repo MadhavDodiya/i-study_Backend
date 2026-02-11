@@ -1,49 +1,104 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import Categories from '../Data/Categories';
 import courses from '../Data/Courses';
 import banner from '../assets/Images/imgi_20_banner-img-1.png';
 import banner1 from '../assets/Images/imgi_29_about-thumb-01.png';
 import banner2 from '../assets/Images/imgi_30_about-thumb-small-01.png';
-// import course1 from '../assets/Images/course1.png';
-// import course2 from '../assets/Images/course2.png';
-// import course3 from '../assets/Images/course3.png';
+import plan1 from '../assets/Images/imgi_44_pricing_thumb01.png';
+import plan2 from '../assets/Images/imgi_46_pricing_thumb02.png';
+import plan3 from '../assets/Images/imgi_47_pricing_thumb03.png';
 
 
 function Home() {
 
-  // const categories = [
-  //   { title: "Graphics Design", courses: 30, icon: "fa-brain" },
-  //   { title: "Web Development", courses: 20, icon: "fa-code" },
-  //   { title: "Photography", courses: 25, icon: "fa-camera" },
-  //   { title: "Business Analysis", courses: 35, icon: "fa-chart-line" },
-  //   { title: "Digital Marketing", courses: 40, icon: "fa-bullhorn" },
-  //   { title: "Data Science", courses: 15, icon: "fa-database" },
-  //   { title: "Health & Fitness", courses: 10, icon: "fa-dumbbell" },
-  //   { title: "Dance & Music", courses: 25, icon: "fa-music" },
-  // ];
+  const plans = [
+    {
+      title: "Basic Plan",
+      courses: "10",
+      desc: "Perfect for beginners, offering essential courses and community support.",
+      price: "$15.00",
+      features: [
+        "Access to Free Courses",
+        "Community Support",
+        "1 Certificate",
+        "Limited Resources",
+      ],
+      img: plan1,
+    },
+    {
+      title: "Standard Plan",
+      courses: "20",
+      desc: "Great for advancing skills with diverse courses and added resources.",
+      price: "$30.00",
+      features: [
+        "Access to All Courses",
+        "Priority Support",
+        "3 Certificates",
+        "Downloadable Resources",
+      ],
+      img: plan2,
+      highlight: true,
+    },
+    {
+      title: "Premium Plan",
+      courses: "Unlimited",
+      desc: "Unlimited access with expert mentorship and exclusive perks.",
+      price: "$50.00",
+      features: [
+        "All Access Pass",
+        "1-on-1 Mentorship",
+        "Unlimited Certificates",
+        "Exclusive Webinars",
+      ],
+      img: plan3,
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: "Emily Davis",
+      text: "Joining iStudy was the best decision I made this year. The course variety and personalized learning paths helped me achieve my professional goals with ease.",
+      img: "https://randomuser.me/api/portraits/women/44.jpg",
+    },
+    {
+      name: "John Smith",
+      text: "Amazing platform! Courses are well structured and mentors are very helpful.",
+      img: "https://randomuser.me/api/portraits/men/32.jpg",
+    },
+    {
+      name: "Sophia Lee",
+      text: "I improved my skills and got a job thanks to these courses.",
+      img: "https://randomuser.me/api/portraits/women/65.jpg",
+    },
+  ];
 
   return (
     <>
       {/* HERO */}
       <div className="container-fluid bg-[#d9f6ee]">
         <div className="container pt-5">
-          <div className="row">
-            <div className="col-lg-6 mt-5">
-              <p className='text-[#07A169]'>WELCOME TO STUDY</p>
-              <p className='text-5xl font-bold'>Discover <span className='text-[#ffb800]'>2700+</span></p>
-              <p className='text-5xl font-bold'>Online Courses</p>
-              <p className='text-5xl font-bold'>available in the world</p>
+          <div className="row align-items-center gy-4">
+            <div className="col-lg-6 mt-3 mt-lg-5 text-center text-lg-start">
+              <p className='text-[#07A169] fw-semibold'>WELCOME TO STUDY</p>
+              <p className='hero-title fw-bold mb-0'>Discover <span className='text-[#ffb800]'>2700+</span></p>
+              <p className='hero-title fw-bold mb-0'>Online Courses</p>
+              <p className='hero-title fw-bold'>available in the world</p>
               <p className='text-gray-500 pt-3'>They are not liable for any offense caused by those who fail to carry out their duties.</p>
 
-              <button className='bg-[#07A169] text-white px-5 py-3 rounded mt-3'>Find Courses</button>
-              <button className='ms-3 text-[#ffb800]'>
-                <i className="fa-solid fa-play"></i> Watch Video
-              </button>
+              <div className="hero-actions d-flex flex-wrap align-items-center gap-3 mt-3 justify-content-center justify-content-lg-start">
+                <button className='btn1'>Find Courses</button>
+                <button className='btn btn-link p-0 text-[#ffb800] text-decoration-none hero-video-btn'>
+                  <i className="fa-solid fa-play"></i> Watch Video
+                </button>
+              </div>
             </div>
 
-            <div className="col-lg-6">
+            <div className="col-lg-6 text-center">
               <img src={banner} alt="banner" className="img-fluid" />
             </div>
           </div>
@@ -53,23 +108,23 @@ function Home() {
       {/* GREEN FEATURES */}
       <section className="bg-emerald-600 py-8">
         <div className="container">
-          <div className="row text-white">
+          <div className="row text-white g-3">
 
-            <div className="col-lg-4 d-flex align-items-center gap-3 mb-3">
+            <div className="col-12 col-md-6 col-lg-4 d-flex align-items-center gap-3 feature-item">
               <div className="bg-white rounded-circle p-3">
                 <i className="fa-solid fa-laptop text-success fs-3"></i>
               </div>
               <p>Gain expertise with access to over <b>24,000 video courses</b></p>
             </div>
 
-            <div className="col-lg-4 d-flex align-items-center gap-3 mb-3">
+            <div className="col-12 col-md-6 col-lg-4 d-flex align-items-center gap-3 feature-item">
               <div className="bg-white rounded-circle p-3">
                 <i className="fa-solid fa-user-graduate text-success fs-3"></i>
               </div>
               <p>Learn from <b>industry experts</b></p>
             </div>
 
-            <div className="col-lg-4 d-flex align-items-center gap-3 mb-3">
+            <div className="col-12 col-md-6 col-lg-4 d-flex align-items-center gap-3 feature-item">
               <div className="bg-white rounded-circle p-3">
                 <i className="fa-solid fa-mobile text-success fs-3"></i>
               </div>
@@ -84,11 +139,11 @@ function Home() {
       {/* TOP CATEGORIES SECTION */}
       {/* ========================= */}
 
-      <div style={{ background: "#f3f4f6", padding: "80px 0" }}>
+      <div className="top-categories-section">
         <div className="container">
 
           <div className="text-center mb-5">
-            <h2 className="fw-bold" style={{ fontSize: "42px", color: "#063b2e" }}>
+            <h2 className="top-categories-title fw-bold">
               Top Categories
             </h2>
             <div style={{
@@ -126,7 +181,7 @@ function Home() {
 
       <div className="about-section py-5">
         <div className="container">
-          <div className="row align-items-center">
+          <div className="row align-items-center gy-4">
 
             {/* LEFT IMAGES */}
             <div className="col-lg-6 position-relative mb-5 mb-lg-0">
@@ -142,9 +197,9 @@ function Home() {
             </div>
 
             {/* RIGHT CONTENT */}
-            <div className="col-lg-6 text-white">
+            <div className="col-lg-6 text-white about-content">
               <p className="text-warning fw-semibold mb-2">ABOUT US</p>
-              <h1 className="fw-bold mb-3">
+              <h1 className="fw-bold mb-3 about-title">
                 A New Different Way To <br />
                 Improve Your <span className="highlight">Skills</span>
               </h1>
@@ -203,7 +258,7 @@ function Home() {
 
       <div className="container text-center mt-5 mb-5">
         <p className='text-green-500'>TRENDING COURSES</p>
-        <p className='text-5xl font-bold'>Find Your Course</p>
+        <p className='trending-title fw-bold'>Find Your Course</p>
       </div>
 
 
@@ -211,7 +266,7 @@ function Home() {
         <div className="row g-4">
 
           {courses.map((c, i) => (
-            <div className="col-lg-4" key={i}>
+            <div className="col-12 col-md-6 col-xl-4" key={i}>
               <div className="course-card">
 
                 {/* NORMAL */}
@@ -251,14 +306,19 @@ function Home() {
 
                   <p>Level : <span className="text-success">{c.level}</span></p>
 
-                  <p className=''>{c.desc1}</p>
+                  <p className='text-gray-500'>{c.desc1}</p>
+
+                  <p className='text-gray-500'><span className='text-green-500 px-2 text-2xl'><i className="bi bi-check"></i></span>{c.p1}</p>
+                  <p className='text-gray-500'><span className='text-green-500 px-2 text-2xl'><i className="bi bi-check"></i></span>{c.p2}</p>
+                  <p className='text-gray-500'><span className='text-green-500 px-2 text-2xl'><i className="bi bi-check"></i></span>{c.p3}</p>
+                  <p className='text-gray-500'><span className='text-green-500 px-2 text-2xl'><i className="bi bi-check"></i></span>{c.p4}</p>
 
                   <h5>
                     {c.price}
                     <del className="text-muted fs-6 ms-2">{c.oldPrice}</del>
                   </h5>
 
-                  <div className="d-flex gap-2 mt-3">
+                  <div className="d-flex gap-2 mt-3 flex-wrap card-hover-actions">
                     <button className="btn btn-success">View Details</button>
                     <button className="btn btn-warning">
                       <i className="fa fa-heart"></i>
@@ -272,14 +332,132 @@ function Home() {
                     Enroll Now
                   </button>
                 </div>
-
               </div>
             </div>
           ))}
-
         </div>
       </div>
 
+      <div className="container items-center text-center py-4 pb-5 see-more-wrap">
+        <button className="btn1 btn1-lg">
+          see more courses
+        </button>
+      </div>
+
+      <div className="container text-center mt-5 mb-5">
+        <p className='text-green-500'>CHOOSE YOUR PERFECT PLAN</p>
+        <p className='trending-title fw-bold'>Flexible Learning Options</p>
+      </div>
+
+      <div className="py-12 px-4">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {plans.map((plan, i) => (
+            <div key={i} className={'rounded-xl overflow-hidden transition border'}>
+              {/* IMAGE */}
+              <div className="relative">
+                <img src={plan.img} className="w-full h-52 object-cover" alt="" />
+
+                <div className="absolute bottom-0 left-0 w-full bg-black/20 p-2">
+                  <h2 className="text-white text-xl font-semibold">
+                    {plan.title}
+                  </h2>
+                </div>
+
+                <div className="absolute right-0 bottom-0 bg-green-600 text-white px-6 py-3 text-center">
+                  <div className="text-2xl font-bold">{plan.courses}</div>
+                  <div className="text-sm">Courses</div>
+                </div>
+              </div>
+
+              {/* CONTENT */}
+              <div className="p-6">
+                <p className="text-gray-600 mb-4">{plan.desc}</p>
+
+                <ul className="space-y-2 mb-6">
+                  {plan.features.map((f, idx) => (
+                    <li key={idx} className="flex items-center gap-2">
+                      <span className="text-green-600">✔</span> {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500">START FROM</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {plan.price}
+                    <span className="text-sm text-black"> /MONTH</span>
+                  </p>
+                </div>
+
+                <button className="font-semibold hover:text-green-600">
+                  View Plans →
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="w-full">
+        <div className="grid lg:grid-cols-2">
+
+          {/* LEFT IMAGE */}
+          <div className="relative">
+            <img src="https://images.unsplash.com/photo-1584697964358-3e14ca57658b" className="w-full h-[350px] md:h-[500px] lg:h-full object-cover" />
+
+            {/* play button */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-20 h-20 border-2 border-white rounded-full flex items-center justify-center">
+                <div className="w-14 h-14 border-2 border-white rounded-full flex items-center justify-center">
+                  <i className="bi bi-play-fill text-white text-2xl"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT CONTENT */}
+          <div className="bg-gradient-to-br from-green-600 to-green-500 text-white p-8 md:p-14 flex items-center">
+            <div className="max-w-xl">
+
+              <p className="text-yellow-300 font-semibold mb-2">
+                TESTIMONIALS
+              </p>
+
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                What Our Students Saying
+              </h2>
+
+              {/* SWIPER */}
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                autoplay={{ delay: 3000 }}
+                pagination={{ clickable: true }}
+                loop={true}
+                className="pb-10">
+                {testimonials.map((t, i) => (
+                  <SwiperSlide key={i}>
+                    <div>
+                      {/* stars */}
+                      <div className="text-yellow-400 text-lg mb-4">
+                        ⭐⭐⭐⭐⭐
+                      </div>
+
+                      <p className="text-lg opacity-90 mb-6">
+                        {t.text}
+                      </p>
+
+                      <div className="flex items-center gap-3">
+                        <img src={t.img} className="w-12 h-12 rounded-full"/>
+                        <span className="font-semibold">{t.name}</span>
+                      </div>
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   )
 }
