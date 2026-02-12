@@ -5,59 +5,39 @@ import logo from '../assets/Images/imgi_2_logo.png';
 function Header() {
   return (
     <>
-      <div className="bg-[#ffb800] text-black text-sm">
-        <div className="max-w-7xl mx-auto px-4">
-
-          <div className="hidden md:flex items-center justify-between h-12">
-
-            <div className="flex items-center gap-6">
-
-              <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone-outbound-fill" viewBox="0 0 16 16">
-                  <path fillRule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877zM11 .5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V1.707l-4.146 4.147a.5.5 0 0 1-.708-.708L14.293 1H11.5a.5.5 0 0 1-.5-.5" />
-                </svg>
+      <div className="header-topbar text-black small">
+        <div className="container">
+          <div className="d-none d-md-flex align-items-center justify-content-between py-2">
+            <div className="d-flex align-items-center gap-4 flex-wrap">
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-telephone-outbound-fill"></i>
                 <span>(888) 446-7880</span>
               </div>
 
-              <div className="w-px h-5 bg-black/40"></div>
+              <span className="header-divider"></span>
 
-              <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-envelope" viewBox="0 0 16 16">
-                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z" />
-                </svg>
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-envelope-fill"></i>
                 <span>example@istudy.com</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-geo-alt-fill" viewBox="0 0 16 16">
-                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
-              </svg>
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-geo-alt-fill"></i>
               <span>Brooklyn, NY 12207, New York</span>
             </div>
-
           </div>
-
-          <div className="md:hidden py-2 space-y-1 text-center">
-            <div>(888) 446-7880</div>
-            <div>example@istudy.com</div>
-            <div>Brooklyn, NY 12207, New York</div>
-          </div>
-
         </div>
       </div>
 
-      <nav className="navbar navbar-expand-lg navbar-custom navbar-bg-[#daf4ed]">
+      <nav className="navbar navbar-expand-lg navbar-custom">
         <div className="container">
-
-          {/* LOGO */}
           <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
             <img src={logo} alt="iStudy" />
           </Link>
 
-          {/* CATEGORY */}
           <div className="dropdown me-3 d-none d-lg-block">
-            <button className="btn border border-2 border-bg-gray-700 dropdown-toggle" data-bs-toggle="dropdown">
+            <button className="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown" type="button">
               <i className="bi bi-list me-2"></i>
               Category
             </button>
@@ -73,25 +53,20 @@ function Header() {
             </ul>
           </div>
 
-          {/* MOBILE TOGGLE */}
-          <button className="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          {/* MENU */}
-          <div className="navbar-collapse" id="navMenu">
-
+          <div className="collapse navbar-collapse" id="navMenu">
             <ul className="navbar-nav mx-auto gap-lg-3">
-
               <li className="nav-item">
                 <Link className="nav-link" to="/">Home</Link>
               </li>
 
-              {/* COURSES */}
               <li className="nav-item dropdown">
-                <a className="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                <button className="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   Courses
-                </a>
+                </button>
                 <ul className="dropdown-menu">
                   <li><Link className="dropdown-item" to="">Advance Course Filter</Link></li>
                   <li><Link className="dropdown-item" to="">Courses grid</Link></li>
@@ -103,7 +78,6 @@ function Header() {
                 </ul>
               </li>
 
-              {/* PAGES MEGA */}
               <li className="nav-item dropdown position-static">
                 <button
                   className="nav-link dropdown-toggle btn btn-link"
@@ -297,7 +271,6 @@ function Header() {
                 </div>
               </li>
 
-              {/* DASHBOARD */}
               <li className="nav-item dropdown">
                 <button
                   className="nav-link dropdown-toggle btn btn-link"
@@ -313,7 +286,6 @@ function Header() {
                 </ul>
               </li>
 
-              {/* ELEMENTS MEGA */}
               <li className="nav-item dropdown position-static">
                 <button
                   className="nav-link dropdown-toggle btn btn-link"
@@ -355,7 +327,6 @@ function Header() {
                 </div>
               </li>
 
-              {/* BLOG */}
               <li className="nav-item dropdown">
                 <button
                   className="nav-link dropdown-toggle btn btn-link"
@@ -370,13 +341,12 @@ function Header() {
                   <li><Link className="dropdown-item" to="/blog/details">Blog Details</Link></li>
                 </ul>
               </li>
-
             </ul>
 
-            {/* RIGHT */}
             <div className="d-flex align-items-center gap-3">
-
-              <i className="bi bi-search fs-5"></i>
+              <button className="btn btn-link p-0 text-dark" type="button" aria-label="Search">
+                <i className="bi bi-search fs-5"></i>
+              </button>
 
               <div className="position-relative">
                 <i className="bi bi-cart fs-5"></i>
@@ -387,15 +357,10 @@ function Header() {
 
               <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
               <Link className="btn btn-success" to="/register">Register</Link>
-
             </div>
-
           </div>
         </div>
       </nav>
-
-
-
     </>
   );
 }
