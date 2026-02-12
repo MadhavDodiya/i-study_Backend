@@ -19,6 +19,19 @@ import team1 from '../assets/Images/imgi_52_instructor-thumb-01.png';
 import team2 from '../assets/Images/imgi_53_instructor-thumb-02.png';
 import team3 from '../assets/Images/imgi_54_instructor-thumb-03.png';
 import team4 from '../assets/Images/instructor-thumb-04.webp';
+import logo1 from '../assets/Images/imgi_62_partner-01.png';
+import logo2 from '../assets/Images/imgi_63_partner-02.png';
+import logo3 from '../assets/Images/imgi_64_partner-03.png';
+import logo4 from '../assets/Images/imgi_65_partner-04.png';
+import logo5 from '../assets/Images/imgi_66_partner-05.png';
+import logo6 from '../assets/Images/imgi_67_partner-06.png';
+import logo7 from '../assets/Images/imgi_68_partner-07.png';
+import logo8 from '../assets/Images/imgi_69_partner-08.png';
+import img1 from "../assets/Images/blog-thumb-01.webp";
+import img2 from "../assets/Images/blog-thumb-02.webp";
+import img3 from "../assets/Images/blog-thumb-03.webp";
+
+
 
 function Home() {
   const plans = [
@@ -118,6 +131,42 @@ function Home() {
 
     return <span>{count}+</span>;
   }
+
+  const logos = [
+    { img: logo1 },
+    { img: logo2 },
+    { img: logo3 },
+    { img: logo4 },
+    { img: logo5 },
+    { img: logo6 },
+    { img: logo7 },
+    { img: logo8 },
+  ];
+
+  const blogs = [
+    {
+      img: img1,
+      name: "Alice Johnson",
+      date: "November 10 2024",
+      title: "How to Stay Motivated and Succeed in Online Courses",
+      desc: "Discover the must-have books of the season, from thrilling mysteries to inspiring biographies.",
+    },
+    {
+      img: img2,
+      name: "Michael Smith",
+      date: "November 10 2024",
+      title: "Choosing the Right Online Course for Your Goals",
+      desc: "Discover the must-have books of the season, inspiring biographies.",
+    },
+    {
+      img: img3,
+      name: "Emma Brown",
+      date: "November 10 2024",
+      title: "Essential Tech Tools for Online Course Success",
+      desc: "Books of the season, from thrilling mysteries to inspiring biographies.",
+    },
+  ];
+
 
   return (
     <>
@@ -470,6 +519,91 @@ function Home() {
           </div>
         </div>
       </div>
+
+      <section className="partners-section py-5">
+        <div className="container">
+          <div className="row align-items-center">
+
+            {/* LEFT TEXT */}
+            <div className="col-lg-5 mb-4">
+              <h1 className="fw-bold display-6">
+                Our Global Honorable <br /> Partners
+              </h1>
+
+              <p className="text-muted mt-3">
+                Global partners has been publish the course you want, in the way you want always have of control.
+              </p>
+
+              <p className="fw-bold text-success mt-3">
+                9,500+ <span className="text-muted fw-normal">businesses & students around the world</span>
+              </p>
+            </div>
+
+            {/* LOGO GRID */}
+            <div className="col-lg-7">
+              <div className="row g-0 border">
+
+                {logos.map((logo, i) => (
+                  <div key={i} className="col-6 col-md-3 p-0">
+
+                    <div className="logo-box">
+                      <span className="left"></span>
+                      <span className="right"></span>
+
+                      <div className="logo-inner">
+                        <img src={logo.img} alt="" className="img-fluid" />
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="container-fluid text-center pt-5 bg-light">
+        <p className="text-success small py-0 m-0">NEWS & UPDATE</p>
+        <p className="trending-title fw-bold py-0 m-0">Latest News</p>
+      </div>
+
+      <section className="py-5 bg-light">
+        <div className="container">
+          <div className="row g-4">
+
+            {blogs.map((b, i) => (
+              <div key={i} className="col-md-6 col-lg-4">
+                <div className="blog-card">
+
+                  {/* IMAGE */}
+                  <div className="blog-img">
+                    <img src={b.img} alt="" />
+                  </div>
+
+                  {/* CONTENT */}
+                  <div className="p-4">
+
+                    <div className="text-muted small mb-2">
+                      👤 {b.name} &nbsp;&nbsp; 📅 {b.date}
+                    </div>
+
+                    <h5 className="fw-bold">{b.title}</h5>
+                    <p className="text-muted">{b.desc}</p>
+
+                    {/* READ MORE */}
+                    <div className="read-more">
+                      →
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            ))}
+
+          </div>
+        </div>
+      </section>
     </>
   );
 }

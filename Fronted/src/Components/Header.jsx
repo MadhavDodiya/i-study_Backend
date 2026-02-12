@@ -37,11 +37,18 @@ function Header() {
           </Link>
 
           <div className="dropdown me-3 d-none d-lg-block">
-            <button className="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown" type="button">
+            <button
+              id="categoryDropdown"
+              className="btn btn-outline-dark dropdown-toggle"
+              data-bs-toggle="dropdown"
+              data-bs-display="static"
+              type="button"
+              aria-expanded="false"
+            >
               <i className="bi bi-list me-2"></i>
               Category
             </button>
-            <ul className="dropdown-menu">
+            <ul className="dropdown-menu" aria-labelledby="categoryDropdown">
               <li><button className="dropdown-item" type="button">Development</button></li>
               <li><button className="dropdown-item" type="button">Marketing</button></li>
               <li><button className="dropdown-item" type="button">Photography</button></li>
@@ -64,10 +71,16 @@ function Header() {
               </li>
 
               <li className="nav-item dropdown">
-                <button className="nav-link dropdown-toggle btn btn-link" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button
+                  id="coursesDropdown"
+                  className="nav-link dropdown-toggle btn btn-link"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
                   Courses
                 </button>
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu" aria-labelledby="coursesDropdown">
                   <li><Link className="dropdown-item" to="">Advance Course Filter</Link></li>
                   <li><Link className="dropdown-item" to="">Courses grid</Link></li>
                   <li><Link className="dropdown-item" to="">Courses List</Link></li>
@@ -80,16 +93,18 @@ function Header() {
 
               <li className="nav-item dropdown position-static">
                 <button
+                  id="pagesDropdown"
                   className="nav-link dropdown-toggle btn btn-link"
                   type="button"
                   data-bs-toggle="dropdown"
                   data-bs-auto-close="outside"
+                  data-bs-display="static"
                   aria-expanded="false"
                 >
                   Pages
                 </button>
 
-                <div className="dropdown-menu p-4 shadow dropdown-menu-center mega-menu mega-menu--five">
+                <div className="dropdown-menu p-4 shadow dropdown-menu-center mega-menu mega-menu--five" aria-labelledby="pagesDropdown">
                   <div className="row">
 
                     <div className="col-lg-2">
@@ -273,6 +288,7 @@ function Header() {
 
               <li className="nav-item dropdown">
                 <button
+                  id="dashboardDropdown"
                   className="nav-link dropdown-toggle btn btn-link"
                   type="button"
                   data-bs-toggle="dropdown"
@@ -280,7 +296,7 @@ function Header() {
                 >
                   Dashboard
                 </button>
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu" aria-labelledby="dashboardDropdown">
                   <li><Link className="dropdown-item" to="/dashboard/student">Student Dashboard</Link></li>
                   <li><Link className="dropdown-item" to="/dashboard/instructor">Instructor Dashboard</Link></li>
                 </ul>
@@ -288,15 +304,17 @@ function Header() {
 
               <li className="nav-item dropdown position-static">
                 <button
+                  id="elementsDropdown"
                   className="nav-link dropdown-toggle btn btn-link"
                   type="button"
                   data-bs-toggle="dropdown"
                   data-bs-auto-close="outside"
+                  data-bs-display="static"
                   aria-expanded="false">
                   Elements
                 </button>
 
-                <div className="dropdown-menu p-4 shadow dropdown-menu-center mega-menu">
+                <div className="dropdown-menu p-4 shadow dropdown-menu-center mega-menu" aria-labelledby="elementsDropdown">
                   <div className="row">
 
                     <div className="col-lg-3">
@@ -329,13 +347,14 @@ function Header() {
 
               <li className="nav-item dropdown">
                 <button
+                  id="blogDropdown"
                   className="nav-link dropdown-toggle btn btn-link"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">
                   Blog
                 </button>
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu" aria-labelledby="blogDropdown">
                   <li><Link className="dropdown-item" to="/blog">Blog standard</Link></li>
                   <li><Link className="dropdown-item" to="/blog/details">Blog Advance</Link></li>
                   <li><Link className="dropdown-item" to="/blog/details">Blog Details</Link></li>

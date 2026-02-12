@@ -14,6 +14,8 @@
 
 .navbar-custom {
   background: #dfe9e4;
+  position: relative;
+  z-index: 1030;
 }
 
 .header-topbar {
@@ -42,6 +44,13 @@
 
 .navbar .dropdown.position-static .dropdown-menu {
   top: 100%;
+}
+
+.navbar .dropdown-menu {
+  margin-top: 0.35rem;
+  border: 0;
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 .mega-menu--five .row > [class^="col-"] {
@@ -240,7 +249,9 @@
 }
 
 .plan-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .plan-card:hover {
@@ -385,6 +396,12 @@
   .dropdown:hover > .dropdown-menu {
     display: block;
   }
+
+  .navbar .dropdown.position-static > .dropdown-menu.dropdown-menu-center {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
 }
 
 @media (max-width: 991.98px) {
@@ -398,6 +415,12 @@
 
   .navbar .navbar-collapse {
     padding: 12px 0;
+  }
+
+  .navbar .dropdown-menu {
+    margin-top: 0;
+    box-shadow: none;
+    border-radius: 0.5rem;
   }
 
   .mega-menu--five .row > [class^="col-"] {
@@ -488,4 +511,146 @@
   .hero-title {
     font-size: clamp(1.8rem, 8vw, 2.6rem);
   }
+}
+
+.partners-section {
+  background: #eef3f2;
+  position: relative;
+}
+
+/* world map background */
+.partners-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("https://www.transparenttextures.com/patterns/world-map.png");
+  opacity: 0.2;
+}
+
+/* BOX */
+.logo-box {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f5f4;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s ease;
+  border: 1px solid #e6e6e6;
+}
+
+/* IMAGE */
+.logo-inner img {
+  max-height: 55px;
+  transition: 0.35s;
+}
+
+/* HOVER EFFECT */
+.logo-box:hover {
+  background: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+}
+
+.logo-box:hover img {
+  transform: scale(1.1);
+}
+
+/* BORDER ANIMATION */
+.logo-box::before,
+.logo-box::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  background: #198754;
+  transition: 0.4s;
+}
+
+.logo-box::before {
+  top: 0;
+  left: 0;
+}
+
+.logo-box::after {
+  bottom: 0;
+  right: 0;
+}
+
+.logo-box:hover::before {
+  width: 100%;
+}
+
+.logo-box:hover::after {
+  width: 100%;
+}
+
+/* LEFT RIGHT */
+.logo-box span {
+  position: absolute;
+  width: 2px;
+  height: 0;
+  background: #198754;
+  transition: 0.4s;
+}
+
+.logo-box span.left {
+  left: 0;
+  top: 0;
+}
+
+.logo-box span.right {
+  right: 0;
+  bottom: 0;
+}
+
+.logo-box:hover span.left {
+  height: 100%;
+}
+
+.logo-box:hover span.right {
+  height: 100%;
+}
+
+
+.blog-card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: 0.3s;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+/* IMAGE */
+.blog-img {
+  overflow: hidden;
+}
+
+.blog-img img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  transition: 0.5s;
+}
+
+/* ZOOM HOVER */
+.blog-card:hover img {
+  transform: scale(1.1);
+}
+
+/* READ MORE HIDDEN */
+.read-more {
+  font-size: 22px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: 0.3s;
+}
+
+/* SHOW ON HOVER */
+.blog-card:hover .read-more {
+  opacity: 1;
+  transform: translateY(0);
 }
