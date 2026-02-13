@@ -1,8 +1,17 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/Images/imgi_2_logo.png';
 
 function Header() {
+  const location = useLocation();
+  const [showSubMenu, setShowSubMenu] = useState(false);
+
+  const toggleSubMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowSubMenu(!showSubMenu);
+  };
+
   return (
     <>
       <div className="header-topbar text-black small">
@@ -80,14 +89,72 @@ function Header() {
                 >
                   Courses
                 </button>
+
                 <ul className="dropdown-menu" aria-labelledby="coursesDropdown">
-                  <li><Link className="dropdown-item" to="">Advance Course Filter</Link></li>
-                  <li><Link className="dropdown-item" to="">Courses grid</Link></li>
-                  <li><Link className="dropdown-item" to="">Courses List</Link></li>
-                  <li><Link className="dropdown-item" to="">Courses Details</Link></li>
-                  <li><Link className="dropdown-item" to="">Program Details</Link></li>
-                  <li><Link className="dropdown-item" to="">Courses Lesson</Link></li>
-                  <li><Link className="dropdown-item" to="">create New Courses</Link></li>
+
+                  {/* 🔽 SUB DROPDOWN */}
+                  <li className="dropdown-submenu">
+                    <span 
+                      className="dropdown-item dropdown-toggle" 
+                      onClick={toggleSubMenu}
+                      style={{ cursor: "pointer" }}
+                    >
+                      Advance Course Filter
+                    </span>
+
+                    <ul className={`dropdown-menu sub-menu ${showSubMenu ? "show" : ""}`}>
+                      <li>
+                        <Link className={`dropdown-item ${location.pathname === "/courses" ? "active" : ""}`} to="/courses">
+                          courses
+                        </Link>
+                      </li>
+
+                      <li>
+                        <Link
+                          className={`dropdown-item ${location.pathname === "/course-grid" ? "active" : ""}`} to="/course_search_filter">
+                          Course search filter
+                        </Link>
+                      </li>
+                    </ul>
+                  </li>
+
+                  {/* OTHER LINKS */}
+                  <li>
+                    <Link className="dropdown-item" to="/courses_filter_category">
+                      Courses filter category
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link className="dropdown-item" to="/courses-list">
+                      Courses List
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link className="dropdown-item" to="/courses-details">
+                      Courses Details
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link className="dropdown-item" to="/program-details">
+                      Program Details
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link className="dropdown-item" to="/course-lesson">
+                      Courses Lesson
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link className="dropdown-item" to="/create-course">
+                      Create New Courses
+                    </Link>
+                  </li>
+
                 </ul>
               </li>
 

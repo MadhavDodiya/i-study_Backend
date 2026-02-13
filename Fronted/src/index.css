@@ -200,12 +200,13 @@
   background: #fff;
   position: relative;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  transition: 0.3s;
+  transition: 0.5s;
 }
 
 .course-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  transition: 0.5s;
 }
 
 .card-front {
@@ -214,14 +215,17 @@
 
 .card-hover {
   display: none;
+  transition: 0.5s;
 }
 
 .course-card:hover .card-front {
   display: none;
+  transition: 0.5s;
 }
 
 .course-card:hover .card-hover {
   display: block;
+  transition: 0.5s;
 }
 
 .card-hover-actions .btn {
@@ -402,6 +406,25 @@
     right: auto !important;
     transform: translateX(-50%) !important;
   }
+
+  /* submenu parent */
+  .dropdown-submenu {
+    position: relative;
+  }
+
+  /* RIGHT SIDE OPEN */
+  .dropdown-submenu .sub-menu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 2px;
+  }
+
+  /* SHOW ON HOVER */
+  .dropdown-submenu:hover .sub-menu {
+    display: block;
+  }
 }
 
 @media (max-width: 991.98px) {
@@ -423,6 +446,11 @@
     border-radius: 0.5rem;
   }
 
+  /* make navbar overflow visible */
+  .navbar {
+    overflow: visible !important;
+  }
+
   .mega-menu--five .row > [class^="col-"] {
     flex: 0 0 100%;
     max-width: 100%;
@@ -440,6 +468,17 @@
 
   .testimonial-media-img {
     min-height: 380px;
+  }
+
+  .dropdown-submenu .sub-menu {
+    display: none;
+    position: static;
+    margin-left: 1rem;
+    box-shadow: none;
+    border: 0;
+  }
+  .dropdown-submenu .sub-menu.show {
+    display: block;
   }
 }
 
@@ -614,13 +653,12 @@
   height: 100%;
 }
 
-
 .blog-card {
   background: #fff;
   border-radius: 10px;
   overflow: hidden;
   transition: 0.3s;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 

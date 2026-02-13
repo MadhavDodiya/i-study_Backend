@@ -32,6 +32,29 @@ import img2 from "../assets/Images/blog-thumb-02.webp";
 import img3 from "../assets/Images/blog-thumb-03.webp";
 
 
+function Counter({ target }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const duration = 2000;
+    const increment = target / (duration / 16);
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+
+    return () => clearInterval(timer);
+  }, [target]);
+
+  return <span>{count}+</span>;
+}
 
 function Home() {
   const plans = [
@@ -108,29 +131,6 @@ function Home() {
     { number: 1105, label: "Awards Received" },
   ];
 
-  function Counter({ target }) {
-    const [count, setCount] = useState(0);
-
-    useEffect(() => {
-      let start = 0;
-      const duration = 2000;
-      const increment = target / (duration / 16);
-
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= target) {
-          setCount(target);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 16);
-
-      return () => clearInterval(timer);
-    }, [target]);
-
-    return <span>{count}+</span>;
-  }
 
   const logos = [
     { img: logo1 },
