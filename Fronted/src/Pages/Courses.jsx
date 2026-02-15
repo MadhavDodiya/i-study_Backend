@@ -116,8 +116,8 @@ function Courses() {
               <button
                 onClick={() => setView("grid")}
                 className={`btn d-flex align-items-center justify-content-center ${view === "grid"
-                    ? "btn-success text-white"
-                    : "btn-outline-secondary"
+                  ? "btn-success text-white"
+                  : "btn-outline-secondary"
                   }`}
                 style={{ width: "45px", height: "45px" }}
               >
@@ -128,8 +128,8 @@ function Courses() {
               <button
                 onClick={() => setView("list")}
                 className={`btn d-flex align-items-center justify-content-center ${view === "list"
-                    ? "btn-success text-white"
-                    : "btn-outline-secondary"
+                  ? "btn-success text-white"
+                  : "btn-outline-secondary"
                   }`}
                 style={{ width: "45px", height: "45px" }}
               >

@@ -94,8 +94,8 @@ function Header() {
 
                   {/* 🔽 SUB DROPDOWN */}
                   <li className="dropdown-submenu">
-                    <span 
-                      className="dropdown-item dropdown-toggle" 
+                    <span
+                      className="dropdown-item dropdown-toggle"
                       onClick={toggleSubMenu}
                       style={{ cursor: "pointer" }}
                     >
@@ -166,8 +166,7 @@ function Header() {
                   data-bs-toggle="dropdown"
                   data-bs-auto-close="outside"
                   data-bs-display="static"
-                  aria-expanded="false"
-                >
+                  aria-expanded="false">
                   Pages
                 </button>
 

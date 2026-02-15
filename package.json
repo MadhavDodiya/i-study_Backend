@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "dev": "npm run dev --prefix Fronted",
+    "build": "npm run build --prefix Fronted",
+    "lint": "npm run lint --prefix Fronted"
+  },
   "dependencies": {
     "lucide-react": "^0.563.0"
   }
