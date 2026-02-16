@@ -119,8 +119,7 @@ function Courses() {
                   ? "btn-success text-white"
                   : "btn-outline-secondary"
                   }`}
-                style={{ width: "45px", height: "45px" }}
-              >
+                style={{ width: "45px", height: "45px" }}>
                 <i className="bi bi-grid-fill fs-5"></i>
               </button>
 
