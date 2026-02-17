@@ -39,13 +39,13 @@ function Header() {
         </div>
       </div>
 
-      <nav className="navbar navbar-expand-lg navbar-custom">
+      <nav className="navbar navbar-expand-xl navbar-custom">
         <div className="container">
           <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
             <img src={logo} alt="iStudy" />
           </Link>
 
-          <div className="dropdown me-3 d-none d-lg-block">
+          <div className="dropdown me-3 d-none d-xl-block">
             <button
               id="categoryDropdown"
               className="btn btn-outline-dark dropdown-toggle"
@@ -73,8 +73,8 @@ function Header() {
             <span className="navbar-toggler-icon"></span>
           </button>
 
-          <div className="collapse navbar-collapse" id="navMenu">
-            <ul className="navbar-nav mx-auto gap-lg-3">
+          <div className="collapse navbar-collapse pb-2 pb-xl-0" id="navMenu">
+            <ul className="navbar-nav me-xl-auto gap-lg-3">
               <li className="nav-item">
                 <Link className="nav-link" to="/">Home</Link>
               </li>
@@ -428,7 +428,7 @@ function Header() {
               </li>
             </ul>
 
-            <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-3 nav-actions mt-3 mt-xl-0 flex-wrap">
               <button className="btn btn-link p-0 text-dark" type="button" aria-label="Search">
                 <i className="bi bi-search fs-5"></i>
               </button>
@@ -440,8 +440,10 @@ function Header() {
                 </span>
               </div>
 
-              <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
-              <Link className="btn btn-success" to="/register">Register</Link>
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
+                <Link className="btn btn-success" to="/register">Register</Link>
+              </div>
             </div>
           </div>
         </div>

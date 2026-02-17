@@ -19,32 +19,32 @@ export default function Footer() {
   return (
     <>
       {/* ================= CTA CARDS ================= */}
-      <div className="bg-light pt-5">
+      <div className="bg-light pt-5 footer-cta-wrap">
         <div className="container">
-          <div className="bg-white rounded-4 shadow p-4 position-relative" style={{ marginBottom: "-70px", zIndex: 10 }}>
-            <div className="row g-4">
+          <div className="bg-white rounded-4 shadow p-4 position-relative footer-cta-shell" style={{ marginBottom: "-70px", zIndex: 10 }}>
+            <div className="row g-3 g-md-4">
 
               {/* CARD 1 */}
               <div className="col-md-6">
-                <div className="rounded-4 p-4 h-100 d-flex justify-content-between align-items-center" style={{ background: "#e7f5ef" }}>
+                <div className="rounded-4 p-4 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-center text-center text-sm-start footer-cta-card" style={{ background: "#e7f5ef" }}>
                   <div>
                     <p className="text-warning fw-bold small">START YOUR JOURNEY TODAY</p>
                     <h4 className="fw-bold">Become an Instructor & Share Your Expertise</h4>
                     <button className="btn btn-warning mt-3">Learn More</button>
                   </div>
-                  <img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" height="120" alt="Instructor" />
+                  <img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" height="120" alt="Instructor" className="footer-cta-image mt-3 mt-sm-0" />
                 </div>
               </div>
 
               {/* CARD 2 */}
               <div className="col-md-6">
-                <div className="rounded-4 p-4 h-100 d-flex justify-content-between align-items-center" style={{ background: "#f5efe2" }}>
+                <div className="rounded-4 p-4 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-center text-center text-sm-start footer-cta-card" style={{ background: "#f5efe2" }}>
                   <div>
                     <p className="text-success fw-bold small">UNLOCK YOUR POTENTIAL</p>
                     <h4 className="fw-bold">Enhance Your Skills and Stay Ahead</h4>
                     <button className="btn btn-success mt-3">Explore Courses</button>
                   </div>
-                  <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" height="120" alt="Skills" />
+                  <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" height="120" alt="Skills" className="footer-cta-image mt-3 mt-sm-0" />
                 </div>
               </div>
 
@@ -54,9 +54,9 @@ export default function Footer() {
       </div>
 
       {/* ================= FOOTER ================= */}
-      <footer style={{ background: "#022c22" }} className="text-white pt-5 pb-3">
+      <footer style={{ background: "#022c22" }} className="text-white pt-5 pb-3 footer-main">
         <div className="container pt-5">
-          <div className="row g-4 mt-3">
+          <div className="row g-4 mt-3 text-center text-md-start">
 
             {/* LOGO */}
             <div className="col-lg-3">
@@ -64,7 +64,7 @@ export default function Footer() {
               <p className="text-white-50 small">
                 Education focused website template provides visitors with insights into programs or services offered.
               </p>
-              <div className="d-flex gap-2">
+              <div className="d-flex gap-2 justify-content-center justify-content-md-start">
                 <a href="#" className="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{width: 35, height: 35}}><i className="bi bi-facebook"></i></a>
                 <a href="#" className="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{width: 35, height: 35}}><i className="bi bi-twitter-x"></i></a>
                 <a href="#" className="btn btn-outline-light btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{width: 35, height: 35}}><i className="bi bi-linkedin"></i></a>

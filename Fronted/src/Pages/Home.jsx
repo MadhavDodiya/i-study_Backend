@@ -182,11 +182,9 @@ function Home() {
               <p className="hero-muted pt-3">They are not liable for any offense caused by those who fail to carry out their duties.</p>
 
               <div className="hero-actions d-flex flex-wrap align-items-center gap-3 mt-3 justify-content-center justify-content-lg-start">
-                <button className="btn1">
-                  <Link to="/courses" className="text-decoration-none">
-                    Find Courses
-                  </Link>
-                </button>
+                <Link to="/courses" className="btn1 text-decoration-none">
+                  Find Courses
+                </Link>
                 <button className="btn btn-link p-0 hero-accent text-decoration-none hero-video-btn">
                   <i className="fa-solid fa-play"></i> Watch Video
                 </button>
@@ -441,7 +439,7 @@ function Home() {
           <div className="col-12 col-lg-6 testimonial-gradient text-white p-4 p-md-5 d-flex align-items-center">
             <div className="testimonial-content-wrap">
               <p className="text-warning fw-semibold mb-2">TESTIMONIALS</p>
-              <h2 className="fs-1 fw-bold mb-4">What Our Students Saying</h2>
+              <h2 className="fw-bold mb-4 testimonial-title">What Our Students Saying</h2>
 
               <Swiper
                 modules={[Autoplay, Pagination]}
@@ -454,7 +452,7 @@ function Home() {
                     <div>
                       <div className="text-warning fs-5 mb-4">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
 
-                      <p className="fs-5 opacity-90 mb-4">{t.text}</p>
+                      <p className="opacity-90 mb-4 testimonial-copy">{t.text}</p>
 
                       <div className="d-flex align-items-center gap-3">
                         <img src={t.img} className="rounded-circle testimonial-avatar" alt={t.name} />
