@@ -366,7 +366,7 @@ function Courses() {
                     </div>
                     <hr className="m-0" />
                     <div className="p-3">
-                      <Link to="/coursedetail" className="btn btn-outline-success w-100">
+                      <Link to={`/coursedetail/${course.id}`} className="btn btn-outline-success w-100">
                         Enroll Now
                       </Link>
                     </div>
