@@ -3,12 +3,15 @@ import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
 import avatar from "../assets/Images/imgi_50_avatar.png";
 import instructorThumb from "../assets/Images/imgi_52_instructor-thumb-01.png";
 // import reviewAvatar2 from "../assets/Images/instructor-thumb-04.webp";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import coursesData from "../Data/Courses";
+import { addCourseToWishlist, getWishlistIds } from "../utils/wishlistStorage";
 
 export default function CourseDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [wishlistedIds, setWishlistedIds] = useState(() => new Set(getWishlistIds()));
     const selectedCourse = coursesData.find((course) => course.id === Number(id)) || coursesData[0];
     const curriculumItems = [
         "Introduction to Web Development",
@@ -19,6 +22,14 @@ export default function CourseDetail() {
         "React Basics",
         "Full-Stack Development with Node.js"
     ];
+
+    const wishlisted = wishlistedIds.has(Number(selectedCourse.id));
+
+    const handleAddToWishlist = () => {
+        addCourseToWishlist(selectedCourse);
+        setWishlistedIds((prev) => new Set([...prev, Number(selectedCourse.id)]));
+        navigate("/wishlist");
+    };
 
     return (
         <>
@@ -636,8 +647,10 @@ export default function CourseDetail() {
                                 <button
                                     type="button"
                                     className="btn w-100 fw-semibold mt-3 py-3 border"
-                                    style={{ borderColor: "#10a66d", color: "#10a66d", fontSize: "16px", backgroundColor: "transparent" }}>
-                                    <i className="bi bi-suit-heart me-2"></i> Add To Wishlist
+                                    onClick={handleAddToWishlist}
+                                    style={{ borderColor: "#10a66d", color: "#10a66d", fontSize: "16px", backgroundColor: wishlisted ? "#e8f7f1" : "transparent" }}>
+                                    <i className={`bi me-2 ${wishlisted ? "bi-suit-heart-fill" : "bi-suit-heart"}`}></i>
+                                    {wishlisted ? "Added To Wishlist" : "Add To Wishlist"}
                                 </button>
                             </div>
                         </div>

@@ -4,6 +4,7 @@ import Header from './Components/Header'
 import Home from './Pages/Home.jsx'
 import Courses from './Pages/Courses.jsx'
 import CourseDetail from './Pages/CourseDetail.jsx'
+import Wishlist from './Pages/Wishlist.jsx'
 import Footer from './Components/Footer'
 import Preloader from './Components/Preloader.jsx'
 
@@ -31,6 +32,7 @@ function App() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/coursedetail" element={<CourseDetail />} />
           <Route path="/coursedetail/:id" element={<CourseDetail />} />
+          <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
         <Footer />
       </BrowserRouter>
