@@ -27,8 +27,7 @@ function Wishlist() {
         <>
             <div
                 className="w-100 d-flex align-items-center justify-content-center position-relative overflow-hidden"
-                style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center", height: "300px" }}
-            >
+                style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center", height: "300px" }}>
                 <div className="text-center">
                     <h1 className="display-4 fw-bold mt-4" style={{ color: "#0b2c2c" }}>
                         Wishlist
@@ -121,7 +120,9 @@ function Wishlist() {
 
             <div className="d-flex justify-content-center pb-5">
                 <button type="button" className="btn btn-success px-4 py-2">
-                    Go to Cart
+                    <Link to="/cart" className="text-decoration-none text-white">
+                        Go to Cart
+                    </Link>
                 </button>
             </div>
         </>

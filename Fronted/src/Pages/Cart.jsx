@@ -1,0 +1,27 @@
+import React from 'react'
+import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
+import { Link } from "react-router-dom";
+
+function Cart() {
+  return (
+    <>
+        <div className="w-100 d-flex align-items-center justify-content-center position-relative overflow-hidden" style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center", height: "300px" }}>
+                <div className="text-center">
+                    <h1 className="display-4 fw-bold mt-4" style={{ color: "#0b2c2c" }}>
+                        Cart
+                    </h1>
+                    <div className="d-flex align-items-center justify-content-center gap-2 text-secondary">
+                        <Link to="/" className="text-decoration-none text-black d-flex align-items-center gap-2">
+                            <i className="bi bi-house-door-fill"></i>
+                            <span>iStudy</span>
+                        </Link>
+                        <span className="mx-1"> - </span>
+                        <span className="fw-medium text-black">cart</span>
+                    </div>
+                </div>
+            </div>
+    </>
+  )
+}
+
+export default Cart

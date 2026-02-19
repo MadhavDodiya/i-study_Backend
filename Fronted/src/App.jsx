@@ -7,6 +7,7 @@ import CourseDetail from './Pages/CourseDetail.jsx'
 import Wishlist from './Pages/Wishlist.jsx'
 import Register from './Pages/Register.jsx'
 import Login from './Pages/Login.jsx'
+import Cart from './Pages/Cart.jsx'
 import Footer from './Components/Footer'
 import Preloader from './Components/Preloader.jsx'
 
@@ -37,6 +38,7 @@ function App() {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
         <Footer />
       </BrowserRouter>
