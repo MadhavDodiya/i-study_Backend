@@ -5,6 +5,8 @@ import Home from './Pages/Home.jsx'
 import Courses from './Pages/Courses.jsx'
 import CourseDetail from './Pages/CourseDetail.jsx'
 import Wishlist from './Pages/Wishlist.jsx'
+import Register from './Pages/Register.jsx'
+import Login from './Pages/Login.jsx'
 import Footer from './Components/Footer'
 import Preloader from './Components/Preloader.jsx'
 
@@ -33,6 +35,8 @@ function App() {
           <Route path="/coursedetail" element={<CourseDetail />} />
           <Route path="/coursedetail/:id" element={<CourseDetail />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
         <Footer />
       </BrowserRouter>
