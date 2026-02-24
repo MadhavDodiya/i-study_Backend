@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
 import coursesData from "../Data/Courses";
 import { getWishlistIds, removeCourseFromWishlist } from "../utils/wishlistStorage";
+import { addCourseToCart } from "../utils/cartStorage";
 
 function Wishlist() {
+    const navigate = useNavigate();
     const [wishlistIds, setWishlistIds] = useState(() => getWishlistIds());
 
     const wishlistCourses = useMemo(() => {
@@ -16,6 +18,11 @@ function Wishlist() {
     const handleRemove = (courseId) => {
         const updatedIds = removeCourseFromWishlist(courseId);
         setWishlistIds(updatedIds);
+    };
+
+    const handleAddToCart = (course) => {
+        addCourseToCart(course, 1);
+        navigate("/cart");
     };
 
     const getPriceValue = (price) => {
@@ -88,12 +95,13 @@ function Wishlist() {
                                             </td>
 
                                             <td className="text-center border py-4">
-                                                <Link
-                                                    to={`/coursedetail/${course.id}`}
+                                                <button
+                                                    type="button"
                                                     className="btn px-5 py-2"
+                                                    onClick={() => handleAddToCart(course)}
                                                     style={{ backgroundColor: "#10a66d", color: "#fff", fontSize: "16px", minWidth: "180px" }}>
                                                     Add To Cart
-                                                </Link>
+                                                </button>
                                             </td>
 
                                             <td className="text-center border py-4" style={{ fontSize: "20px", fontWeight: "500" }}>

@@ -6,6 +6,7 @@ import instructorThumb from "../assets/Images/imgi_52_instructor-thumb-01.png";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import coursesData from "../Data/Courses";
 import { addCourseToWishlist, getWishlistIds } from "../utils/wishlistStorage";
+import { addCourseToCart } from "../utils/cartStorage";
 
 export default function CourseDetail() {
     const { id } = useParams();
@@ -29,6 +30,11 @@ export default function CourseDetail() {
         addCourseToWishlist(selectedCourse);
         setWishlistedIds((prev) => new Set([...prev, Number(selectedCourse.id)]));
         navigate("/wishlist");
+    };
+
+    const handleAddToCart = () => {
+        addCourseToCart(selectedCourse, 1);
+        navigate("/cart");
     };
 
     return (
@@ -640,6 +646,7 @@ export default function CourseDetail() {
                                 <button
                                     type="button"
                                     className="btn w-100 fw-semibold mt-4 py-3"
+                                    onClick={handleAddToCart}
                                     style={{ backgroundColor: "#10a66d", color: "#ffffff", fontSize: "16px" }}>
                                     <i className="bi bi-cart3 me-2"></i> Add To Cart
                                 </button>

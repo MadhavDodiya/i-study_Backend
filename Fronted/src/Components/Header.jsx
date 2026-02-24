@@ -1,10 +1,83 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/Images/imgi_2_logo.png';
+import coursesData from '../Data/Courses';
+import { getCartItems, getCartUpdatedEventName, removeCourseFromCart } from '../utils/cartStorage';
 
 function Header() {
   const location = useLocation();
   const [showSubMenu, setShowSubMenu] = useState(false);
+  const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(() =>
+    getCartItems().reduce((sum, item) => sum + item.quantity, 0)
+  );
+  const [cartItems, setCartItems] = useState(() => getCartItems());
+
+  const cartPreviewItems = useMemo(() => {
+    return cartItems
+      .map((item) => {
+        const course = coursesData.find((entry) => entry.id === item.courseId);
+        if (!course) {
+          return null;
+        }
+
+        const unitPrice = Number.isFinite(Number(course.priceValue))
+          ? Number(course.priceValue)
+          : Number(String(course.price).replace(/[^0-9.]/g, "")) || 0;
+
+        return {
+          ...item,
+          course,
+          unitPrice,
+          total: unitPrice * item.quantity,
+        };
+      })
+      .filter(Boolean);
+  }, [cartItems]);
+
+  const cartSubtotal = useMemo(
+    () => cartPreviewItems.reduce((sum, item) => sum + item.total, 0),
+    [cartPreviewItems]
+  );
+
+  useEffect(() => {
+    const syncCartCount = () => {
+      const latestItems = getCartItems();
+      const count = latestItems.reduce((sum, item) => sum + item.quantity, 0);
+      setCartCount(count);
+      setCartItems(latestItems);
+    };
+
+    syncCartCount();
+    const cartUpdatedEvent = getCartUpdatedEventName();
+    window.addEventListener(cartUpdatedEvent, syncCartCount);
+    window.addEventListener("storage", syncCartCount);
+
+    return () => {
+      window.removeEventListener(cartUpdatedEvent, syncCartCount);
+      window.removeEventListener("storage", syncCartCount);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isCartSidebarOpen) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isCartSidebarOpen]);
+
+  const formatCurrency = (amount) => `$${Number(amount).toFixed(2)}`;
+
+  const handleSidebarRemove = (courseId) => {
+    const updated = removeCourseFromCart(courseId);
+    setCartItems(updated);
+    setCartCount(updated.reduce((sum, item) => sum + item.quantity, 0));
+  };
 
   const toggleSubMenu = (e) => {
     e.preventDefault();
@@ -433,12 +506,16 @@ function Header() {
                 <i className="bi bi-search fs-5"></i>
               </button>
 
-              <div className="position-relative">
+              <button
+                type="button"
+                className="btn btn-link p-0 position-relative text-dark text-decoration-none"
+                aria-label="Open cart sidebar"
+                onClick={() => setIsCartSidebarOpen(true)}>
                 <i className="bi bi-cart fs-5"></i>
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                  0
+                  {cartCount}
                 </span>
-              </div>
+              </button>
 
               <div className="d-flex align-items-center gap-2 flex-wrap">
                 <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
@@ -448,6 +525,88 @@ function Header() {
           </div>
         </div>
       </nav>
+
+      {isCartSidebarOpen && (
+        <button
+          type="button"
+          className="position-fixed top-0 start-0 w-100 h-100 border-0"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.4)", zIndex: 1040 }}
+          onClick={() => setIsCartSidebarOpen(false)}
+          aria-label="Close cart sidebar overlay"
+        />
+      )}
+
+      <aside
+        className="position-fixed top-0 end-0 h-100 bg-white shadow-lg d-flex flex-column"
+        style={{
+          width: "380px",
+          maxWidth: "100%",
+          zIndex: 1050,
+          transform: isCartSidebarOpen ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s ease"
+        }}>
+        <div className="d-flex align-items-center justify-content-between p-3 border-bottom">
+          <h5 className="mb-0 fw-bold">Your Cart ({cartCount})</h5>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => setIsCartSidebarOpen(false)}>
+            <i className="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div className="flex-grow-1 overflow-auto p-3">
+          {cartPreviewItems.length === 0 ? (
+            <p className="text-muted mb-0">Your cart is empty.</p>
+          ) : (
+            <div className="d-flex flex-column gap-3">
+              {cartPreviewItems.map((item) => (
+                <div key={item.courseId} className="d-flex gap-3 border rounded-3 p-2">
+                  <img
+                    src={item.course.img}
+                    alt={item.course.title}
+                    style={{ width: "64px", height: "64px", objectFit: "cover", borderRadius: "10px" }}
+                  />
+                  <div className="flex-grow-1">
+                    <p className="mb-1 fw-semibold" style={{ fontSize: "14px", lineHeight: "1.35" }}>
+                      {item.course.title}
+                    </p>
+                    <p className="mb-2 text-muted" style={{ fontSize: "13px" }}>
+                      {item.quantity} x {formatCurrency(item.unitPrice)}
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-link text-danger p-0 text-decoration-none"
+                      onClick={() => handleSidebarRemove(item.courseId)}>
+                      Remove
+                    </button>
+                  </div>
+                  <p className="mb-0 fw-semibold text-success">{formatCurrency(item.total)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="border-top p-3">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <span className="text-muted">Subtotal</span>
+            <span className="fw-bold">{formatCurrency(cartSubtotal)}</span>
+          </div>
+
+          <div className="d-grid gap-2">
+            <Link className="btn btn-success" to="/cart" onClick={() => setIsCartSidebarOpen(false)}>
+              Go To Cart
+            </Link>
+            <Link
+              className="btn btn-outline-secondary"
+              to="/courses"
+              onClick={() => setIsCartSidebarOpen(false)}>
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      </aside>
     </>
   );
 }
