@@ -5,8 +5,59 @@ import instructorThumb from "../assets/Images/imgi_52_instructor-thumb-01.png";
 // import reviewAvatar2 from "../assets/Images/instructor-thumb-04.webp";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import coursesData from "../Data/Courses";
-import { addCourseToWishlist, getWishlistIds } from "../utils/wishlistStorage";
-import { addCourseToCart } from "../utils/cartStorage";
+
+const CART_STORAGE_KEY = "istudy_cart";
+const CART_UPDATED_EVENT = "istudy:cart-updated";
+const WISHLIST_STORAGE_KEY = "istudy_wishlist";
+
+const readArray = (key) => {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const getWishlistIds = () =>
+    Array.from(new Set(readArray(WISHLIST_STORAGE_KEY).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
+
+const addCourseToWishlist = (course) => {
+    const courseId = Number(course?.id);
+    if (!Number.isInteger(courseId) || courseId <= 0) {
+        return getWishlistIds();
+    }
+
+    const wishlist = getWishlistIds();
+    if (wishlist.includes(courseId)) {
+        return wishlist;
+    }
+
+    const updated = [...wishlist, courseId];
+    localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+};
+
+const addCourseToCart = (course, quantity = 1) => {
+    const courseId = Number(course?.id);
+    if (!Number.isInteger(courseId) || courseId <= 0) {
+        return readArray(CART_STORAGE_KEY);
+    }
+
+    const qty = Number.isInteger(Number(quantity)) && Number(quantity) > 0 ? Number(quantity) : 1;
+    const current = readArray(CART_STORAGE_KEY);
+    const existing = current.find((item) => Number(item.courseId) === courseId);
+
+    const updated = existing
+        ? current.map((item) =>
+              Number(item.courseId) === courseId ? { ...item, quantity: Number(item.quantity || 0) + qty } : item
+          )
+        : [...current, { courseId, quantity: qty }];
+
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+    return updated;
+};
 
 export default function CourseDetail() {
     const { id } = useParams();

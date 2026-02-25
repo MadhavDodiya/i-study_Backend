@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import bgimg from "../assets/Images/sign-up-bg.webp";
 
 function Register() {
+    const navigate = useNavigate();
+
     const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState({
         name: "",
@@ -10,6 +12,7 @@ function Register() {
         password: "",
         confirmPassword: "",
     });
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -19,21 +22,21 @@ function Register() {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!form.name || !form.email || !form.password || !form.confirmPassword) {
-            alert("Please fill all fields");
+            setErrorMessage("Please fill all fields");
             return;
         }
 
         if (form.password !== form.confirmPassword) {
-            alert("Passwords do not match");
+            setErrorMessage("Passwords do not match");
             return;
         }
 
-        console.log("SIGNUP DATA:", form);
-        alert("Signup Successful (Demo)");
+        setErrorMessage("");
+        navigate("/", { replace: true });
     };
 
     return (
@@ -103,7 +106,13 @@ function Register() {
                                 onChange={handleChange}
                             />
 
-                            <button className="login-btn">Sign Up</button>
+                            {errorMessage ? (
+                                <p className="text-danger small mt-2 mb-0">{errorMessage}</p>
+                            ) : null}
+
+                            <button className="login-btn">
+                                Continue
+                            </button>
                         </form>
 
                         <p className="signup-text">

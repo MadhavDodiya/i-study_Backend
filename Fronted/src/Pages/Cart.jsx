@@ -2,7 +2,41 @@ import React, { useMemo, useState } from 'react';
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
 import { Link, useNavigate } from "react-router-dom";
 import coursesData from "../Data/Courses";
-import { getCartItems, removeCourseFromCart, updateCartItemQuantity } from "../utils/cartStorage";
+
+const CART_STORAGE_KEY = "istudy_cart";
+const CART_UPDATED_EVENT = "istudy:cart-updated";
+
+const getCartItems = () => {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveCartItems = (items) => {
+    const normalized = Array.isArray(items) ? items : [];
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
+    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+    return normalized;
+};
+
+const removeCourseFromCart = (courseId) => {
+    const targetId = Number(courseId);
+    return saveCartItems(getCartItems().filter((item) => Number(item.courseId) !== targetId));
+};
+
+const updateCartItemQuantity = (courseId, quantity) => {
+    const targetId = Number(courseId);
+    const targetQty = Number(quantity);
+    const updated = getCartItems().map((item) =>
+        Number(item.courseId) === targetId
+            ? { ...item, quantity: Number.isInteger(targetQty) && targetQty > 0 ? targetQty : 1 }
+            : item
+    );
+    return saveCartItems(updated);
+};
 
 function Cart() {
     const navigate = useNavigate();

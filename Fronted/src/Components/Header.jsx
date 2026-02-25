@@ -2,7 +2,33 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/Images/imgi_2_logo.png';
 import coursesData from '../Data/Courses';
-import { getCartItems, getCartUpdatedEventName, removeCourseFromCart } from '../utils/cartStorage';
+
+const CART_STORAGE_KEY = "istudy_cart";
+const CART_UPDATED_EVENT = "istudy:cart-updated";
+
+const getCartUpdatedEventName = () => CART_UPDATED_EVENT;
+
+const getCartItems = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveCartItems = (items) => {
+  const normalized = Array.isArray(items) ? items : [];
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
+  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+  return normalized;
+};
+
+const removeCourseFromCart = (courseId) => {
+  const targetId = Number(courseId);
+  const updated = getCartItems().filter((item) => Number(item.courseId) !== targetId);
+  return saveCartItems(updated);
+};
 
 function Header() {
   const location = useLocation();
@@ -184,7 +210,7 @@ function Header() {
 
                       <li>
                         <Link
-                          className={`dropdown-item ${location.pathname === "/course-grid" ? "active" : ""}`} to="/course_search_filter">
+                          className={`dropdown-item ${location.pathname === "/course_search_filter" ? "active" : ""}`} to="/course_search_filter">
                           Course search filter
                         </Link>
                       </li>
@@ -205,7 +231,7 @@ function Header() {
                   </li>
 
                   <li>
-                    <Link className="dropdown-item" to="/courses-details">
+                    <Link className="dropdown-item" to="/coursedetail">
                       Courses Details
                     </Link>
                   </li>
@@ -388,11 +414,11 @@ function Header() {
 
                     <div className="col-lg-2">
                       <h6>Page layout 5</h6>
-                      <Link className="dropdown-item" to="/signin">
+                      <Link className="dropdown-item" to="/login">
                         Sign In
                       </Link>
 
-                      <Link className="dropdown-item" to="/signup">
+                      <Link className="dropdown-item" to="/register">
                         Sign Up
                       </Link>
 

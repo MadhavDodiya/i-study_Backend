@@ -2,7 +2,25 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
 import coursesData from "../Data/Courses";
-import { getCartItems, saveCartItems } from "../utils/cartStorage";
+
+const CART_STORAGE_KEY = "istudy_cart";
+const CART_UPDATED_EVENT = "istudy:cart-updated";
+
+const getCartItems = () => {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveCartItems = (items) => {
+    const normalized = Array.isArray(items) ? items : [];
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
+    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
+    return normalized;
+};
 
 function Checkout() {
     const navigate = useNavigate();
