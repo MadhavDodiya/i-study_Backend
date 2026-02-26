@@ -1,14 +1,29 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
 import avatar from "../assets/Images/imgi_50_avatar.png";
 import instructorThumb from "../assets/Images/imgi_52_instructor-thumb-01.png";
 // import reviewAvatar2 from "../assets/Images/instructor-thumb-04.webp";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import coursesData from "../Data/Courses";
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 
 const CART_STORAGE_KEY = "istudy_cart";
 const CART_UPDATED_EVENT = "istudy:cart-updated";
 const WISHLIST_STORAGE_KEY = "istudy_wishlist";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const courseImageMap = {
+    course1,
+    course2,
+    course3,
+    course4,
+    course5,
+    course6,
+};
 
 const readArray = (key) => {
     try {
@@ -64,7 +79,61 @@ export default function CourseDetail() {
     const navigate = useNavigate();
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [wishlistedIds, setWishlistedIds] = useState(() => new Set(getWishlistIds()));
-    const selectedCourse = coursesData.find((course) => course.id === Number(id)) || coursesData[0];
+    const [selectedCourse, setSelectedCourse] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchCourse = async () => {
+            try {
+                const requestedId = Number(id);
+                let response;
+
+                if (Number.isInteger(requestedId) && requestedId > 0) {
+                    response = await fetch(`${API_BASE}/api/courses/${requestedId}`);
+                } else {
+                    response = await fetch(`${API_BASE}/api/courses`);
+                }
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch course");
+                }
+
+                const data = await response.json();
+                const course = Array.isArray(data) ? data[0] : data;
+
+                if (isMounted) {
+                    if (course) {
+                        setSelectedCourse({
+                            ...course,
+                            img: courseImageMap[course.imageKey] || "",
+                            rating: Number(course.rating) || 0,
+                        });
+                    } else {
+                        setErrorMessage("No course data found.");
+                    }
+                }
+            } catch (error) {
+                console.error("Course detail fetch error:", error);
+                if (isMounted) {
+                    setErrorMessage("Unable to load course details.");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        fetchCourse();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [id]);
+
     const curriculumItems = [
         "Introduction to Web Development",
         "Building Your First Web Page",
@@ -75,18 +144,34 @@ export default function CourseDetail() {
         "Full-Stack Development with Node.js"
     ];
 
-    const wishlisted = wishlistedIds.has(Number(selectedCourse.id));
+    const wishlisted = selectedCourse ? wishlistedIds.has(Number(selectedCourse.id)) : false;
 
     const handleAddToWishlist = () => {
+        if (!selectedCourse) {
+            return;
+        }
+
         addCourseToWishlist(selectedCourse);
         setWishlistedIds((prev) => new Set([...prev, Number(selectedCourse.id)]));
         navigate("/wishlist");
     };
 
     const handleAddToCart = () => {
+        if (!selectedCourse) {
+            return;
+        }
+
         addCourseToCart(selectedCourse, 1);
         navigate("/cart");
     };
+
+    if (isLoading) {
+        return <div className="container py-5 text-center">Loading course details...</div>;
+    }
+
+    if (errorMessage || !selectedCourse) {
+        return <div className="container py-5 text-center text-danger">{errorMessage || "Course not found."}</div>;
+    }
 
     return (
         <>

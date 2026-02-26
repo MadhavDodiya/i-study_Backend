@@ -1,15 +1,33 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
-import coursesData from "../Data/Courses";
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 
 const ratingOptions = [5, 4, 3, 2, 1];
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const courseImageMap = {
+  course1,
+  course2,
+  course3,
+  course4,
+  course5,
+  course6,
+};
 
 function getUniqueValues(data, key) {
-  return [...new Set(data.map((item) => item[key]))];
+  return [...new Set(data.map((item) => item[key]).filter(Boolean))];
 }
 
 function Courses() {
+  const [coursesData, setCoursesData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [view, setView] = useState("grid");
   const [showFilter, setShowFilter] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,10 +38,54 @@ function Courses() {
   const [selectedInstructors, setSelectedInstructors] = useState([]);
   const [selectedLanguages, setSelectedLanguages] = useState([]);
 
-  const categories = useMemo(() => getUniqueValues(coursesData, "category"), []);
-  const levels = useMemo(() => getUniqueValues(coursesData, "level"), []);
-  const instructors = useMemo(() => getUniqueValues(coursesData, "instructor"), []);
-  const languages = useMemo(() => getUniqueValues(coursesData, "language"), []);
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/courses`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch courses");
+        }
+
+        const data = await response.json();
+        if (isMounted) {
+          setCoursesData(Array.isArray(data) ? data : []);
+          setErrorMessage("");
+        }
+      } catch (error) {
+        console.error("Courses fetch error:", error);
+        if (isMounted) {
+          setErrorMessage("Unable to load courses. Please check backend server.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchCourses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const hydratedCourses = useMemo(
+    () =>
+      coursesData.map((course) => ({
+        ...course,
+        img: courseImageMap[course.imageKey] || "",
+        rating: Number(course.rating) || 0,
+      })),
+    [coursesData]
+  );
+
+  const categories = useMemo(() => getUniqueValues(hydratedCourses, "category"), [hydratedCourses]);
+  const levels = useMemo(() => getUniqueValues(hydratedCourses, "level"), [hydratedCourses]);
+  const instructors = useMemo(() => getUniqueValues(hydratedCourses, "instructor"), [hydratedCourses]);
+  const languages = useMemo(() => getUniqueValues(hydratedCourses, "language"), [hydratedCourses]);
 
   const counts = useMemo(() => {
     const categoryCounts = {};
@@ -31,18 +93,18 @@ function Courses() {
     const instructorCounts = {};
     const languageCounts = {};
 
-    coursesData.forEach((course) => {
+    hydratedCourses.forEach((course) => {
       categoryCounts[course.category] = (categoryCounts[course.category] || 0) + 1;
       levelCounts[course.level] = (levelCounts[course.level] || 0) + 1;
       instructorCounts[course.instructor] = (instructorCounts[course.instructor] || 0) + 1;
       languageCounts[course.language] = (languageCounts[course.language] || 0) + 1;
     });
 
-    const freeCount = coursesData.filter((course) => course.priceValue === 0).length;
-    const paidCount = coursesData.length - freeCount;
+    const freeCount = hydratedCourses.filter((course) => Number(course.priceValue) === 0).length;
+    const paidCount = hydratedCourses.length - freeCount;
 
     const ratingCounts = ratingOptions.reduce((acc, rating) => {
-      acc[rating] = coursesData.filter((course) => Math.floor(course.rating) === rating).length;
+      acc[rating] = hydratedCourses.filter((course) => Math.floor(Number(course.rating) || 0) === rating).length;
       return acc;
     }, {});
 
@@ -53,14 +115,14 @@ function Courses() {
       languageCounts,
       freeCount,
       paidCount,
-      ratingCounts
+      ratingCounts,
     };
-  }, []);
+  }, [hydratedCourses]);
 
   const filteredCourses = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return coursesData.filter((course) => {
+    return hydratedCourses.filter((course) => {
       const searchMatch =
         normalizedSearch.length === 0 ||
         [
@@ -69,60 +131,42 @@ function Courses() {
           course.category,
           course.level,
           course.instructor,
-          course.language
+          course.language,
         ]
           .join(" ")
           .toLowerCase()
           .includes(normalizedSearch);
 
-      if (!searchMatch) {
-        return false;
-      }
-
-      if (selectedCategories.length > 0 && !selectedCategories.includes(course.category)) {
-        return false;
-      }
-
-      if (selectedLevels.length > 0 && !selectedLevels.includes(course.level)) {
-        return false;
-      }
-
-      if (selectedInstructors.length > 0 && !selectedInstructors.includes(course.instructor)) {
-        return false;
-      }
-
-      if (selectedLanguages.length > 0 && !selectedLanguages.includes(course.language)) {
-        return false;
-      }
+      if (!searchMatch) return false;
+      if (selectedCategories.length > 0 && !selectedCategories.includes(course.category)) return false;
+      if (selectedLevels.length > 0 && !selectedLevels.includes(course.level)) return false;
+      if (selectedInstructors.length > 0 && !selectedInstructors.includes(course.instructor)) return false;
+      if (selectedLanguages.length > 0 && !selectedLanguages.includes(course.language)) return false;
 
       if (selectedPrices.length > 0) {
-        const isFree = course.priceValue === 0;
+        const isFree = Number(course.priceValue) === 0;
         const priceMatch =
           (selectedPrices.includes("free") && isFree) ||
           (selectedPrices.includes("paid") && !isFree);
 
-        if (!priceMatch) {
-          return false;
-        }
+        if (!priceMatch) return false;
       }
 
-      if (
-        selectedRatings.length > 0 &&
-        !selectedRatings.includes(Math.floor(course.rating))
-      ) {
+      if (selectedRatings.length > 0 && !selectedRatings.includes(Math.floor(Number(course.rating) || 0))) {
         return false;
       }
 
       return true;
     });
   }, [
+    hydratedCourses,
     searchTerm,
     selectedCategories,
     selectedLevels,
     selectedPrices,
     selectedRatings,
     selectedInstructors,
-    selectedLanguages
+    selectedLanguages,
   ]);
 
   const toggleFilterValue = (current, setter, value) => {
@@ -144,10 +188,20 @@ function Courses() {
     setSelectedLanguages([]);
   };
 
+  if (isLoading) {
+    return <div className="container py-5 text-center">Loading courses...</div>;
+  }
+
+  if (errorMessage) {
+    return <div className="container py-5 text-center text-danger">{errorMessage}</div>;
+  }
+
   return (
     <>
-      <div className="w-100 d-flex align-items-center justify-content-center position-relative overflow-hidden"
-        style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center", height: "300px" }}>
+      <div
+        className="w-100 d-flex align-items-center justify-content-center position-relative overflow-hidden"
+        style={{ backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center", height: "300px" }}
+      >
         <div className="text-center">
           <h1 className="display-4 fw-bold mt-4" style={{ color: "#0b2c2c" }}>
             Advanced Course Filter
@@ -176,8 +230,9 @@ function Courses() {
 
               <button
                 onClick={() => setView("grid")}
-                className={`btn d-flex align-items-center justify-content-center ${view === "grid" ? "btn-success text-white" : "btn-outline-secondary"
-                  }`}
+                className={`btn d-flex align-items-center justify-content-center ${
+                  view === "grid" ? "btn-success text-white" : "btn-outline-secondary"
+                }`}
                 style={{ width: "45px", height: "45px" }}
               >
                 <i className="bi bi-grid-fill fs-5"></i>
@@ -185,8 +240,9 @@ function Courses() {
 
               <button
                 onClick={() => setView("list")}
-                className={`btn d-flex align-items-center justify-content-center ${view === "list" ? "btn-success text-white" : "btn-outline-secondary"
-                  }`}
+                className={`btn d-flex align-items-center justify-content-center ${
+                  view === "list" ? "btn-success text-white" : "btn-outline-secondary"
+                }`}
                 style={{ width: "45px", height: "45px" }}
               >
                 <i className="bi bi-list-ul fs-5"></i>
@@ -235,9 +291,7 @@ function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           checked={selectedCategories.includes(category)}
-                          onChange={() =>
-                            toggleFilterValue(selectedCategories, setSelectedCategories, category)
-                          }
+                          onChange={() => toggleFilterValue(selectedCategories, setSelectedCategories, category)}
                         />
                         {category} ({counts.categoryCounts[category] || 0})
                       </label>
@@ -312,9 +366,7 @@ function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           checked={selectedInstructors.includes(instructor)}
-                          onChange={() =>
-                            toggleFilterValue(selectedInstructors, setSelectedInstructors, instructor)
-                          }
+                          onChange={() => toggleFilterValue(selectedInstructors, setSelectedInstructors, instructor)}
                         />
                         {instructor} ({counts.instructorCounts[instructor] || 0})
                       </label>
@@ -331,9 +383,7 @@ function Courses() {
                           type="checkbox"
                           className="form-check-input"
                           checked={selectedLanguages.includes(language)}
-                          onChange={() =>
-                            toggleFilterValue(selectedLanguages, setSelectedLanguages, language)
-                          }
+                          onChange={() => toggleFilterValue(selectedLanguages, setSelectedLanguages, language)}
                         />
                         {language} ({counts.languageCounts[language] || 0})
                       </label>
