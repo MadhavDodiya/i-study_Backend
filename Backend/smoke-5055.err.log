@@ -1,0 +1,8 @@
+=5055 : The term '=5055' is not recognized as the name of a cmdlet, function, script file, or operable program. Check 
+the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ='5055'; node src/server.js
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=5055:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
