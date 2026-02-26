@@ -5,8 +5,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import Categories from '../Data/Categories';
-import courses from '../Data/Courses';
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 import banner from '../assets/Images/imgi_20_banner-img-1.png';
 import banner1 from '../assets/Images/imgi_29_about-thumb-01.png';
 import banner2 from '../assets/Images/imgi_30_about-thumb-small-01.png';
@@ -32,6 +36,16 @@ import img1 from "../assets/Images/blog-thumb-01.webp";
 import img2 from "../assets/Images/blog-thumb-02.webp";
 import img3 from "../assets/Images/blog-thumb-03.webp";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const imageMaps = {
+  course: { course1, course2, course3, course4, course5, course6 },
+  plan: { plan1, plan2, plan3 },
+  testimonial: { testi1, testi2, testi3 },
+  team: { team1, team2, team3, team4 },
+  logo: { logo1, logo2, logo3, logo4, logo5, logo6, logo7, logo8 },
+  blog: { img1, img2, img3 },
+};
 
 function Counter({ target }) {
   const [count, setCount] = useState(0);
@@ -58,115 +72,90 @@ function Counter({ target }) {
 }
 
 function Home() {
-  const plans = [
-    {
-      title: "Basic Plan",
-      courses: "10",
-      desc: "Perfect for beginners, offering essential courses and community support.",
-      price: "$15.00",
-      features: [
-        "Access to Free Courses",
-        "Community Support",
-        "1 Certificate",
-        "Limited Resources",
-      ],
-      img: plan1,
-    },
-    {
-      title: "Standard Plan",
-      courses: "20",
-      desc: "Great for advancing skills with diverse courses and added resources.",
-      price: "$30.00",
-      features: [
-        "Access to All Courses",
-        "Priority Support",
-        "3 Certificates",
-        "Downloadable Resources",
-      ],
-      img: plan2,
-    },
-    {
-      title: "Premium Plan",
-      courses: "Unlimited",
-      desc: "Unlimited access with expert mentorship and exclusive perks.",
-      price: "$50.00",
-      features: [
-        "All Access Pass",
-        "1-on-1 Mentorship",
-        "Unlimited Certificates",
-        "Exclusive Webinars",
-      ],
-      img: plan3,
-    },
-  ];
+  const [homeData, setHomeData] = useState({
+    categories: [],
+    courses: [],
+    plans: [],
+    testimonials: [],
+    team: [],
+    statsData: [],
+    logos: [],
+    blogs: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const testimonials = [
-    {
-      name: "Sarah Jhonson",
-      text: "The courses on iStudy have transformed my career. The practical projects and expert instructors made learning seamless and enjoyable. Highly recommend it!",
-      img: testi1,
-    },
-    {
-      name: "James Parker",
-      text: "iStudy is a game-changer! The flexible schedules and top-notch content allowed me to upskill while managing my busy routine.",
-      img: testi2,
-    },
-    {
-      name: "Emily Davis",
-      text: "Joining iStudy was the best decision I made this year. The course variety and personalized learning paths helped me achieve my goals.",
-      img: testi3,
-    },
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const team = [
-    { name: "Brendan Fraser", role: "Graphics Designer", img: team1 },
-    { name: "Michaels Leonel", role: "Web Designer", img: team2 },
-    { name: "Jenny Wilson", role: "Digital Marketer", img: team3 },
-    { name: "John Wick", role: "WordPress Expert", img: team4 },
-  ];
+    const fetchHomeData = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/content/home`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch home data");
+        }
 
-  const statsData = [
-    { number: 1009, label: "Courses Available" },
-    { number: 9313, label: "Active Learners" },
-    { number: 2015, label: "Expert Instructors" },
-    { number: 1105, label: "Awards Received" },
-  ];
+        const data = await response.json();
+        if (isMounted) {
+          setHomeData(data);
+          setErrorMessage("");
+        }
+      } catch (error) {
+        console.error("Home data fetch error:", error);
+        if (isMounted) {
+          setErrorMessage("Unable to load home page data. Please check backend server.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
 
+    fetchHomeData();
 
-  const logos = [
-    { img: logo1 },
-    { img: logo2 },
-    { img: logo3 },
-    { img: logo4 },
-    { img: logo5 },
-    { img: logo6 },
-    { img: logo7 },
-    { img: logo8 },
-  ];
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  const blogs = [
-    {
-      img: img1,
-      name: "Alice Johnson",
-      date: "November 10 2024",
-      title: "How to Stay Motivated and Succeed in Online Courses",
-      desc: "Discover the must-have books of the season, from thrilling mysteries to inspiring biographies.",
-    },
-    {
-      img: img2,
-      name: "Michael Smith",
-      date: "November 10 2024",
-      title: "Choosing the Right Online Course for Your Goals",
-      desc: "Discover the must-have books of the season, inspiring biographies.",
-    },
-    {
-      img: img3,
-      name: "Emma Brown",
-      date: "November 10 2024",
-      title: "Essential Tech Tools for Online Course Success",
-      desc: "Books of the season, from thrilling mysteries to inspiring biographies.",
-    },
-  ];
+  const safeHomeData = homeData && typeof homeData === "object" ? homeData : {};
+
+  const categories = safeHomeData.categories || [];
+  const courses = (safeHomeData.courses || []).map((course) => ({
+    ...course,
+    img: imageMaps.course[course.imageKey] || null,
+  }));
+  const plans = (safeHomeData.plans || []).map((plan) => ({
+    ...plan,
+    img: imageMaps.plan[plan.imageKey] || null,
+    features: Array.isArray(plan.features) ? plan.features : [],
+  }));
+  const testimonials = (safeHomeData.testimonials || []).map((item) => ({
+    ...item,
+    img: imageMaps.testimonial[item.imageKey] || null,
+  }));
+  const team = (safeHomeData.team || []).map((member) => ({
+    ...member,
+    img: imageMaps.team[member.imageKey] || null,
+  }));
+  const statsData = safeHomeData.statsData || [];
+  const logos = (safeHomeData.logos || []).map((logo) => ({
+    ...logo,
+    img: imageMaps.logo[logo.imageKey] || null,
+  }));
+  const blogs = (safeHomeData.blogs || []).map((blog) => ({
+    ...blog,
+    img: imageMaps.blog[blog.imageKey] || null,
+  }));
+
+  if (isLoading) {
+    return <div className="container py-5 text-center">Loading home data...</div>;
+  }
+
+  if (errorMessage) {
+    return <div className="container py-5 text-center text-danger">{errorMessage}</div>;
+  }
 
 
   return (
@@ -233,7 +222,7 @@ function Home() {
           </div>
 
           <div className="row g-4">
-            {Categories.map((item, i) => (
+            {categories.map((item, i) => (
               <div key={i} className="col-12 col-sm-6 col-lg-3">
                 <div className="bg-white border rounded-4 p-4 d-flex align-items-center gap-3 h-100 categoryCard">
                   <div className="iconBox">
@@ -612,3 +601,4 @@ function Home() {
 }
 
 export default Home;
+

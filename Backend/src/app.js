@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
+const contentRoutes = require("./routes/contentRoutes");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/content", contentRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "route not found" });
