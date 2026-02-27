@@ -11,9 +11,6 @@ import course4 from "../assets/Images/course4.png";
 import course5 from "../assets/Images/course5.png";
 import course6 from "../assets/Images/course6.png";
 
-const CART_STORAGE_KEY = "istudy_cart";
-const CART_UPDATED_EVENT = "istudy:cart-updated";
-const WISHLIST_STORAGE_KEY = "istudy_wishlist";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const courseImageMap = {
@@ -25,63 +22,15 @@ const courseImageMap = {
     course6,
 };
 
-const readArray = (key) => {
-    try {
-        const parsed = JSON.parse(localStorage.getItem(key) || "[]");
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const getWishlistIds = () =>
-    Array.from(new Set(readArray(WISHLIST_STORAGE_KEY).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
-
-const addCourseToWishlist = (course) => {
-    const courseId = Number(course?.id);
-    if (!Number.isInteger(courseId) || courseId <= 0) {
-        return getWishlistIds();
-    }
-
-    const wishlist = getWishlistIds();
-    if (wishlist.includes(courseId)) {
-        return wishlist;
-    }
-
-    const updated = [...wishlist, courseId];
-    localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(updated));
-    return updated;
-};
-
-const addCourseToCart = (course, quantity = 1) => {
-    const courseId = Number(course?.id);
-    if (!Number.isInteger(courseId) || courseId <= 0) {
-        return readArray(CART_STORAGE_KEY);
-    }
-
-    const qty = Number.isInteger(Number(quantity)) && Number(quantity) > 0 ? Number(quantity) : 1;
-    const current = readArray(CART_STORAGE_KEY);
-    const existing = current.find((item) => Number(item.courseId) === courseId);
-
-    const updated = existing
-        ? current.map((item) =>
-              Number(item.courseId) === courseId ? { ...item, quantity: Number(item.quantity || 0) + qty } : item
-          )
-        : [...current, { courseId, quantity: qty }];
-
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
-    return updated;
-};
-
 export default function CourseDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [showReviewForm, setShowReviewForm] = useState(false);
-    const [wishlistedIds, setWishlistedIds] = useState(() => new Set(getWishlistIds()));
+    const [wishlistedIds, setWishlistedIds] = useState(new Set());
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+    const [actionMessage, setActionMessage] = useState("");
 
     useEffect(() => {
         let isMounted = true;
@@ -134,6 +83,37 @@ export default function CourseDetail() {
         };
     }, [id]);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const syncWishlist = async () => {
+            try {
+                const response = await fetch(`${API_BASE}/api/wishlist`, {
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload = await response.json();
+                const ids = (Array.isArray(payload.items) ? payload.items : [])
+                    .map((item) => Number(item.courseId))
+                    .filter((courseId) => Number.isInteger(courseId) && courseId > 0);
+
+                if (isMounted) {
+                    setWishlistedIds(new Set(ids));
+                }
+            } catch (_error) {}
+        };
+
+        syncWishlist();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
     const curriculumItems = [
         "Introduction to Web Development",
         "Building Your First Web Page",
@@ -146,22 +126,73 @@ export default function CourseDetail() {
 
     const wishlisted = selectedCourse ? wishlistedIds.has(Number(selectedCourse.id)) : false;
 
-    const handleAddToWishlist = () => {
+    const handleAddToWishlist = async () => {
         if (!selectedCourse) {
             return;
         }
 
-        addCourseToWishlist(selectedCourse);
-        setWishlistedIds((prev) => new Set([...prev, Number(selectedCourse.id)]));
+        setActionMessage("");
+
+        try {
+            const response = await fetch(`${API_BASE}/api/wishlist`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ courseId: Number(selectedCourse.id) }),
+            });
+
+            if (response.status === 401) {
+                setActionMessage("Please login to add wishlist items.");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to add course to wishlist");
+            }
+
+            setWishlistedIds((prev) => new Set([...prev, Number(selectedCourse.id)]));
+        } catch (error) {
+            console.error("Wishlist add error:", error);
+            setActionMessage("Unable to add course to wishlist.");
+            return;
+        }
+
         navigate("/wishlist");
     };
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!selectedCourse) {
             return;
         }
 
-        addCourseToCart(selectedCourse, 1);
+        setActionMessage("");
+
+        try {
+            const response = await fetch(`${API_BASE}/api/cart`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ courseId: Number(selectedCourse.id), quantity: 1 }),
+            });
+
+            if (response.status === 401) {
+                setActionMessage("Please login to add cart items.");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to add course to cart");
+            }
+        } catch (error) {
+            console.error("Cart add error:", error);
+            setActionMessage("Unable to add course to cart.");
+            return;
+        }
+
         navigate("/cart");
     };
 
@@ -778,6 +809,10 @@ export default function CourseDetail() {
                                     </p>
                                     <p className="mb-0" style={{ color: "#7d7d7d", fontSize: "16px" }}>5 Downloadable Files</p>
                                 </div>
+
+                                {actionMessage && (
+                                    <p className="mt-3 mb-0 text-danger small">{actionMessage}</p>
+                                )}
 
                                 <button
                                     type="button"

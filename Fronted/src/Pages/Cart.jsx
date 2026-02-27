@@ -1,69 +1,72 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
 import { Link, useNavigate } from "react-router-dom";
-import coursesData from "../Data/Courses";
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 
-const CART_STORAGE_KEY = "istudy_cart";
-const CART_UPDATED_EVENT = "istudy:cart-updated";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const getCartItems = () => {
-    try {
-        const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const saveCartItems = (items) => {
-    const normalized = Array.isArray(items) ? items : [];
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
-    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
-    return normalized;
-};
-
-const removeCourseFromCart = (courseId) => {
-    const targetId = Number(courseId);
-    return saveCartItems(getCartItems().filter((item) => Number(item.courseId) !== targetId));
-};
-
-const updateCartItemQuantity = (courseId, quantity) => {
-    const targetId = Number(courseId);
-    const targetQty = Number(quantity);
-    const updated = getCartItems().map((item) =>
-        Number(item.courseId) === targetId
-            ? { ...item, quantity: Number.isInteger(targetQty) && targetQty > 0 ? targetQty : 1 }
-            : item
-    );
-    return saveCartItems(updated);
+const courseImageMap = {
+    course1,
+    course2,
+    course3,
+    course4,
+    course5,
+    course6,
 };
 
 function Cart() {
     const navigate = useNavigate();
-    const [cartItems, setCartItems] = useState(() => getCartItems());
+    const [cartRows, setCartRows] = useState([]);
     const [shippingCost, setShippingCost] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    const cartRows = useMemo(() => {
-        return cartItems
-            .map((item) => {
-                const course = coursesData.find((entry) => entry.id === item.courseId);
-                if (!course) {
-                    return null;
-                }
+    const fetchCart = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`${API_BASE}/api/cart`, {
+                credentials: "include",
+            });
 
-                const unitPrice = Number.isFinite(Number(course.priceValue))
-                    ? Number(course.priceValue)
-                    : Number(String(course.price).replace(/[^0-9.]/g, "")) || 0;
+            if (response.status === 401) {
+                setErrorMessage("Please login to view your cart.");
+                setCartRows([]);
+                return;
+            }
 
-                return {
-                    ...item,
-                    course,
-                    unitPrice,
-                    lineTotal: unitPrice * item.quantity,
-                };
-            })
-            .filter(Boolean);
-    }, [cartItems]);
+            if (!response.ok) {
+                throw new Error("Failed to fetch cart");
+            }
+
+            const payload = await response.json();
+            const items = Array.isArray(payload.items) ? payload.items : [];
+            const hydratedRows = items.map((item) => ({
+                ...item,
+                course: {
+                    ...item.course,
+                    img: courseImageMap[item.course?.imageKey] || "",
+                },
+            }));
+
+            setCartRows(hydratedRows);
+            setErrorMessage("");
+        } catch (error) {
+            console.error("Cart fetch error:", error);
+            setErrorMessage("Unable to load cart. Please check backend server.");
+            setCartRows([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCart();
+    }, []);
 
     const subtotal = useMemo(
         () => cartRows.reduce((sum, item) => sum + item.lineTotal, 0),
@@ -72,25 +75,88 @@ function Cart() {
 
     const total = subtotal + shippingCost;
 
-    const handleRemove = (courseId) => {
-        const updated = removeCourseFromCart(courseId);
-        setCartItems(updated);
-    };
+    const removeItem = async (courseId) => {
+        const response = await fetch(`${API_BASE}/api/cart/${courseId}`, {
+            method: "DELETE",
+            credentials: "include",
+        });
 
-    const handleIncrease = (courseId, quantity) => {
-        const updated = updateCartItemQuantity(courseId, quantity + 1);
-        setCartItems(updated);
-    };
-
-    const handleDecrease = (courseId, quantity) => {
-        if (quantity <= 1) {
-            const updated = removeCourseFromCart(courseId);
-            setCartItems(updated);
-            return;
+        if (response.status === 401) {
+            setErrorMessage("Please login to update your cart.");
+            return false;
         }
 
-        const updated = updateCartItemQuantity(courseId, quantity - 1);
-        setCartItems(updated);
+        if (!response.ok) {
+            throw new Error("Failed to remove cart item");
+        }
+
+        return true;
+    };
+
+    const updateQuantity = async (courseId, quantity) => {
+        const response = await fetch(`${API_BASE}/api/cart/${courseId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ quantity }),
+        });
+
+        if (response.status === 401) {
+            setErrorMessage("Please login to update your cart.");
+            return false;
+        }
+
+        if (!response.ok) {
+            throw new Error("Failed to update quantity");
+        }
+
+        return true;
+    };
+
+    const handleRemove = async (courseId) => {
+        try {
+            const ok = await removeItem(courseId);
+            if (ok) {
+                await fetchCart();
+            }
+        } catch (error) {
+            console.error("Cart remove error:", error);
+            setErrorMessage("Unable to remove cart item.");
+        }
+    };
+
+    const handleIncrease = async (courseId, quantity) => {
+        try {
+            const ok = await updateQuantity(courseId, quantity + 1);
+            if (ok) {
+                await fetchCart();
+            }
+        } catch (error) {
+            console.error("Cart quantity update error:", error);
+            setErrorMessage("Unable to update quantity.");
+        }
+    };
+
+    const handleDecrease = async (courseId, quantity) => {
+        try {
+            if (quantity <= 1) {
+                const ok = await removeItem(courseId);
+                if (ok) {
+                    await fetchCart();
+                }
+                return;
+            }
+
+            const ok = await updateQuantity(courseId, quantity - 1);
+            if (ok) {
+                await fetchCart();
+            }
+        } catch (error) {
+            console.error("Cart quantity update error:", error);
+            setErrorMessage("Unable to update quantity.");
+        }
     };
 
     const formatCurrency = (amount) => `$${Number(amount).toFixed(2)}`;
@@ -117,10 +183,22 @@ function Cart() {
 
             <div className="py-5" style={{ backgroundColor: "#f5f7f9" }}>
                 <div className="container">
+                    {isLoading && (
+                        <div className="alert alert-info border-0 shadow-sm" role="alert">
+                            Loading cart...
+                        </div>
+                    )}
+
+                    {!isLoading && errorMessage && (
+                        <div className="alert alert-warning border-0 shadow-sm" role="alert">
+                            {errorMessage}
+                        </div>
+                    )}
+
                     <div className="row g-4 align-items-start">
                         <div className="col-12 col-lg-8">
                             <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-                                {cartRows.length === 0 ? (
+                                {!isLoading && cartRows.length === 0 ? (
                                     <div className="card-body text-center p-5">
                                         <h3 className="fw-bold mb-2">Your cart is empty</h3>
                                         <p className="text-muted mb-4">Add courses from course detail or wishlist to view them here.</p>
@@ -146,7 +224,7 @@ function Cart() {
                                                         <td className="px-4 py-3">
                                                             <div className="d-flex align-items-center gap-3">
                                                                 <img
-                                                                    src={item.course.img}
+                                                                    src={item.course?.img}
                                                                     alt={item.course.title}
                                                                     style={{ width: "64px", height: "64px", objectFit: "cover", borderRadius: "12px" }}
                                                                 />

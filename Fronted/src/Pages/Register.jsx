@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import bgimg from "../assets/Images/sign-up-bg.webp";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function Register() {
     const navigate = useNavigate();
 
@@ -13,6 +15,7 @@ function Register() {
         confirmPassword: "",
     });
     const [errorMessage, setErrorMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -36,7 +39,36 @@ function Register() {
         }
 
         setErrorMessage("");
-        navigate("/", { replace: true });
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch(`${API_BASE}/api/auth/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    email: form.email.trim(),
+                    password: form.password,
+                }),
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                setErrorMessage(payload.message || "Registration failed");
+                return;
+            }
+
+            navigate("/", { replace: true });
+        } catch (error) {
+            console.error("Register error:", error);
+            setErrorMessage("Unable to register. Please check backend server.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -110,8 +142,8 @@ function Register() {
                                 <p className="text-danger small mt-2 mb-0">{errorMessage}</p>
                             ) : null}
 
-                            <button className="login-btn">
-                                Continue
+                            <button className="login-btn" disabled={isSubmitting}>
+                                {isSubmitting ? "Creating account..." : "Continue"}
                             </button>
                         </form>
 

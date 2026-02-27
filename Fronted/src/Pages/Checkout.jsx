@@ -1,31 +1,32 @@
-import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
-import coursesData from "../Data/Courses";
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 
-const CART_STORAGE_KEY = "istudy_cart";
-const CART_UPDATED_EVENT = "istudy:cart-updated";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const getCartItems = () => {
-    try {
-        const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const saveCartItems = (items) => {
-    const normalized = Array.isArray(items) ? items : [];
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
-    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
-    return normalized;
+const courseImageMap = {
+    course1,
+    course2,
+    course3,
+    course4,
+    course5,
+    course6,
 };
 
 function Checkout() {
     const navigate = useNavigate();
-    const [cartItems, setCartItems] = useState(() => getCartItems());
+    const [cartRows, setCartRows] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderPlaced, setOrderPlaced] = useState(false);
+    const [placedOrder, setPlacedOrder] = useState(null);
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -37,31 +38,51 @@ function Checkout() {
         note: ""
     });
 
-    const checkoutRows = useMemo(() => {
-        return cartItems
-            .map((item) => {
-                const course = coursesData.find((entry) => entry.id === item.courseId);
-                if (!course) {
-                    return null;
-                }
+    const fetchCart = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`${API_BASE}/api/cart`, {
+                credentials: "include",
+            });
 
-                const unitPrice = Number.isFinite(Number(course.priceValue))
-                    ? Number(course.priceValue)
-                    : Number(String(course.price).replace(/[^0-9.]/g, "")) || 0;
+            if (response.status === 401) {
+                setErrorMessage("Please login to checkout.");
+                setCartRows([]);
+                return;
+            }
 
-                return {
-                    ...item,
-                    course,
-                    unitPrice,
-                    total: unitPrice * item.quantity,
-                };
-            })
-            .filter(Boolean);
-    }, [cartItems]);
+            if (!response.ok) {
+                throw new Error("Failed to fetch cart");
+            }
+
+            const payload = await response.json();
+            const items = (Array.isArray(payload.items) ? payload.items : []).map((item) => ({
+                ...item,
+                total: Number(item.lineTotal) || 0,
+                course: {
+                    ...item.course,
+                    img: courseImageMap[item.course?.imageKey] || "",
+                },
+            }));
+
+            setCartRows(items);
+            setErrorMessage("");
+        } catch (error) {
+            console.error("Checkout cart fetch error:", error);
+            setErrorMessage("Unable to load checkout data.");
+            setCartRows([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCart();
+    }, []);
 
     const subtotal = useMemo(
-        () => checkoutRows.reduce((sum, item) => sum + item.total, 0),
-        [checkoutRows]
+        () => cartRows.reduce((sum, item) => sum + item.total, 0),
+        [cartRows]
     );
 
     const tax = subtotal * 0.1;
@@ -74,16 +95,46 @@ function Checkout() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handlePlaceOrder = (event) => {
+    const submitCheckout = async (event) => {
         event.preventDefault();
 
-        if (checkoutRows.length === 0) {
+        if (cartRows.length === 0) {
             return;
         }
 
-        saveCartItems([]);
-        setCartItems([]);
-        setOrderPlaced(true);
+        setErrorMessage("");
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch(`${API_BASE}/api/orders/checkout`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(formData),
+            });
+
+            if (response.status === 401) {
+                setErrorMessage("Please login to place order.");
+                return;
+            }
+
+            const payload = await response.json();
+            if (!response.ok) {
+                setErrorMessage(payload.message || "Unable to place order.");
+                return;
+            }
+
+            setPlacedOrder(payload.order || null);
+            setOrderPlaced(true);
+            setCartRows([]);
+        } catch (error) {
+            console.error("Checkout submit error:", error);
+            setErrorMessage("Unable to place order. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -108,10 +159,25 @@ function Checkout() {
 
             <div className="py-5" style={{ backgroundColor: "#f5f7f9" }}>
                 <div className="container">
+                    {isLoading && (
+                        <div className="alert alert-info border-0 shadow-sm" role="alert">
+                            Loading checkout...
+                        </div>
+                    )}
+
+                    {!isLoading && errorMessage && (
+                        <div className="alert alert-warning border-0 shadow-sm" role="alert">
+                            {errorMessage}
+                        </div>
+                    )}
+
                     {orderPlaced ? (
                         <div className="card border-0 shadow-sm rounded-4 p-5 text-center">
                             <h2 className="fw-bold mb-3" style={{ color: "#0b2c2c" }}>Order placed successfully</h2>
                             <p className="text-muted mb-4">Thank you. Your courses are confirmed.</p>
+                            {placedOrder?.id && (
+                                <p className="text-muted mb-4">Order ID: {placedOrder.id}</p>
+                            )}
                             <div className="d-flex gap-2 justify-content-center flex-wrap">
                                 <Link to="/courses" className="btn btn-success px-4">Continue Learning</Link>
                                 <button type="button" className="btn btn-outline-secondary px-4" onClick={() => navigate('/')}>
@@ -119,7 +185,7 @@ function Checkout() {
                                 </button>
                             </div>
                         </div>
-                    ) : checkoutRows.length === 0 ? (
+                    ) : !isLoading && cartRows.length === 0 ? (
                         <div className="card border-0 shadow-sm rounded-4 p-5 text-center">
                             <h3 className="fw-bold mb-2">Your cart is empty</h3>
                             <p className="text-muted mb-4">Add courses to cart before checkout.</p>
@@ -129,7 +195,7 @@ function Checkout() {
                             </div>
                         </div>
                     ) : (
-                        <form onSubmit={handlePlaceOrder}>
+                        <form onSubmit={submitCheckout}>
                             <div className="row g-4 align-items-start">
                                 <div className="col-12 col-lg-8">
                                     <div className="card border-0 shadow-sm rounded-4">
@@ -180,7 +246,7 @@ function Checkout() {
                                             <h5 className="fw-bold mb-3" style={{ color: "#0b2c2c" }}>Order Summary</h5>
 
                                             <div className="d-flex flex-column gap-3 mb-3">
-                                                {checkoutRows.map((item) => (
+                                                {cartRows.map((item) => (
                                                     <div key={item.courseId} className="d-flex justify-content-between gap-2">
                                                         <div>
                                                             <p className="mb-1 fw-semibold" style={{ fontSize: "14px" }}>{item.course.title}</p>
@@ -206,8 +272,8 @@ function Checkout() {
                                                 <span className="text-success">{formatCurrency(grandTotal)}</span>
                                             </div>
 
-                                            <button type="submit" className="btn btn-success w-100 mt-4 py-2 fw-semibold">
-                                                Place Order
+                                            <button type="submit" className="btn btn-success w-100 mt-4 py-2 fw-semibold" disabled={isSubmitting}>
+                                                {isSubmitting ? "Placing Order..." : "Place Order"}
                                             </button>
 
                                             <Link to="/cart" className="btn btn-outline-secondary w-100 mt-2 py-2">

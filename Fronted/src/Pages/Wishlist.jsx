@@ -1,73 +1,123 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import bg from "../assets/Images/imgi_47_breadcrumb-bg-2.png";
-import coursesData from "../Data/Courses";
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 
-const CART_STORAGE_KEY = "istudy_cart";
-const CART_UPDATED_EVENT = "istudy:cart-updated";
-const WISHLIST_STORAGE_KEY = "istudy_wishlist";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const readArray = (key) => {
-    try {
-        const parsed = JSON.parse(localStorage.getItem(key) || "[]");
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const getWishlistIds = () =>
-    Array.from(new Set(readArray(WISHLIST_STORAGE_KEY).map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0)));
-
-const removeCourseFromWishlist = (courseId) => {
-    const targetId = Number(courseId);
-    const updated = getWishlistIds().filter((id) => id !== targetId);
-    localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(updated));
-    return updated;
-};
-
-const addCourseToCart = (course, quantity = 1) => {
-    const courseId = Number(course?.id);
-    if (!Number.isInteger(courseId) || courseId <= 0) {
-        return readArray(CART_STORAGE_KEY);
-    }
-
-    const qty = Number.isInteger(Number(quantity)) && Number(quantity) > 0 ? Number(quantity) : 1;
-    const current = readArray(CART_STORAGE_KEY);
-    const existing = current.find((item) => Number(item.courseId) === courseId);
-    const updated = existing
-        ? current.map((item) =>
-              Number(item.courseId) === courseId ? { ...item, quantity: Number(item.quantity || 0) + qty } : item
-          )
-        : [...current, { courseId, quantity: qty }];
-
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new Event(CART_UPDATED_EVENT));
-    return updated;
+const courseImageMap = {
+    course1,
+    course2,
+    course3,
+    course4,
+    course5,
+    course6,
 };
 
 function Wishlist() {
     const navigate = useNavigate();
-    const [wishlistIds, setWishlistIds] = useState(() => getWishlistIds());
+    const [wishlistRows, setWishlistRows] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    const wishlistCourses = useMemo(() => {
-        return wishlistIds
-            .map((courseId) => coursesData.find((course) => course.id === courseId))
-            .filter(Boolean);
-    }, [wishlistIds]);
+    const fetchWishlist = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`${API_BASE}/api/wishlist`, {
+                credentials: "include",
+            });
 
-    const handleRemove = (courseId) => {
-        const updatedIds = removeCourseFromWishlist(courseId);
-        setWishlistIds(updatedIds);
+            if (response.status === 401) {
+                setErrorMessage("Please login to view your wishlist.");
+                setWishlistRows([]);
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch wishlist");
+            }
+
+            const payload = await response.json();
+            const rows = (Array.isArray(payload.items) ? payload.items : []).map((item) => ({
+                ...item,
+                course: {
+                    ...item.course,
+                    img: courseImageMap[item.course?.imageKey] || "",
+                },
+            }));
+
+            setWishlistRows(rows);
+            setErrorMessage("");
+        } catch (error) {
+            console.error("Wishlist fetch error:", error);
+            setErrorMessage("Unable to load wishlist. Please check backend server.");
+            setWishlistRows([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleAddToCart = (course) => {
-        addCourseToCart(course, 1);
-        navigate("/cart");
+    useEffect(() => {
+        fetchWishlist();
+    }, []);
+
+    const handleRemove = async (courseId) => {
+        try {
+            const response = await fetch(`${API_BASE}/api/wishlist/${courseId}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+
+            if (response.status === 401) {
+                setErrorMessage("Please login to update your wishlist.");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to remove wishlist item");
+            }
+
+            await fetchWishlist();
+        } catch (error) {
+            console.error("Wishlist remove error:", error);
+            setErrorMessage("Unable to remove wishlist item.");
+        }
     };
 
-    const getPriceValue = (price) => {
-        const numeric = Number(String(price).replace(/[^0-9.]/g, ""));
+    const handleAddToCart = async (courseId) => {
+        try {
+            const response = await fetch(`${API_BASE}/api/cart`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ courseId, quantity: 1 }),
+            });
+
+            if (response.status === 401) {
+                setErrorMessage("Please login to add items to cart.");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to add course to cart");
+            }
+
+            navigate("/cart");
+        } catch (error) {
+            console.error("Wishlist add-to-cart error:", error);
+            setErrorMessage("Unable to add course to cart.");
+        }
+    };
+
+    const getPriceValue = (amount) => {
+        const numeric = Number(amount);
         return Number.isFinite(numeric) ? numeric.toFixed(2) : "0.00";
     };
 
@@ -92,7 +142,19 @@ function Wishlist() {
             </div>
 
             <div className="container py-5">
-                {wishlistCourses.length === 0 ? (
+                {isLoading && (
+                    <div className="alert alert-info border-0 shadow-sm" role="alert">
+                        Loading wishlist...
+                    </div>
+                )}
+
+                {!isLoading && errorMessage && (
+                    <div className="alert alert-warning border-0 shadow-sm" role="alert">
+                        {errorMessage}
+                    </div>
+                )}
+
+                {!isLoading && wishlistRows.length === 0 ? (
                     <div className="text-center border rounded-4 p-5">
                         <h3 className="fw-bold mb-2">Your wishlist is empty</h3>
                         <p className="text-muted mb-4">Add courses from the course detail page to see them here.</p>
@@ -114,11 +176,12 @@ function Wishlist() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {wishlistCourses.map((course) => {
-                                    const price = getPriceValue(course.price);
+                                {wishlistRows.map((item) => {
+                                    const price = getPriceValue(item.course?.priceValue);
+                                    const course = item.course;
 
                                     return (
-                                        <tr key={course.id}>
+                                        <tr key={item.courseId}>
                                             <td className="text-center border py-4">
                                                 <img
                                                     src={course.img}
@@ -139,7 +202,7 @@ function Wishlist() {
                                                 <button
                                                     type="button"
                                                     className="btn px-5 py-2"
-                                                    onClick={() => handleAddToCart(course)}
+                                                    onClick={() => handleAddToCart(course.id)}
                                                     style={{ backgroundColor: "#10a66d", color: "#fff", fontSize: "16px", minWidth: "180px" }}>
                                                     Add To Cart
                                                 </button>

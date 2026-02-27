@@ -1,89 +1,130 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import logo from '../assets/Images/imgi_2_logo.png';
-import coursesData from '../Data/Courses';
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import logo from "../assets/Images/imgi_2_logo.png";
+import course1 from "../assets/Images/course1.png";
+import course2 from "../assets/Images/course2.png";
+import course3 from "../assets/Images/course3.png";
+import course4 from "../assets/Images/course4.png";
+import course5 from "../assets/Images/course5.png";
+import course6 from "../assets/Images/course6.png";
 
-const CART_STORAGE_KEY = "istudy_cart";
-const CART_UPDATED_EVENT = "istudy:cart-updated";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const getCartUpdatedEventName = () => CART_UPDATED_EVENT;
-
-const getCartItems = () => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveCartItems = (items) => {
-  const normalized = Array.isArray(items) ? items : [];
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
-  window.dispatchEvent(new Event(CART_UPDATED_EVENT));
-  return normalized;
-};
-
-const removeCourseFromCart = (courseId) => {
-  const targetId = Number(courseId);
-  const updated = getCartItems().filter((item) => Number(item.courseId) !== targetId);
-  return saveCartItems(updated);
+const courseImageMap = {
+  course1,
+  course2,
+  course3,
+  course4,
+  course5,
+  course6,
 };
 
 function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showSubMenu, setShowSubMenu] = useState(false);
   const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(() =>
-    getCartItems().reduce((sum, item) => sum + item.quantity, 0)
-  );
-  const [cartItems, setCartItems] = useState(() => getCartItems());
-
-  const cartPreviewItems = useMemo(() => {
-    return cartItems
-      .map((item) => {
-        const course = coursesData.find((entry) => entry.id === item.courseId);
-        if (!course) {
-          return null;
-        }
-
-        const unitPrice = Number.isFinite(Number(course.priceValue))
-          ? Number(course.priceValue)
-          : Number(String(course.price).replace(/[^0-9.]/g, "")) || 0;
-
-        return {
-          ...item,
-          course,
-          unitPrice,
-          total: unitPrice * item.quantity,
-        };
-      })
-      .filter(Boolean);
-  }, [cartItems]);
-
-  const cartSubtotal = useMemo(
-    () => cartPreviewItems.reduce((sum, item) => sum + item.total, 0),
-    [cartPreviewItems]
-  );
+  const [cartCount, setCartCount] = useState(0);
+  const [cartPreviewItems, setCartPreviewItems] = useState([]);
+  const [cartSubtotal, setCartSubtotal] = useState(0);
+  const [cartError, setCartError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    const syncCartCount = () => {
-      const latestItems = getCartItems();
-      const count = latestItems.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(count);
-      setCartItems(latestItems);
+    let isMounted = true;
+
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/me`, {
+          credentials: "include",
+        });
+
+        if (response.status === 401) {
+          if (isMounted) {
+            setCurrentUser(null);
+          }
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch current user");
+        }
+
+        const payload = await response.json();
+        if (isMounted) {
+          setCurrentUser(payload.user || null);
+          setAuthError("");
+        }
+      } catch (error) {
+        console.error("Header auth fetch error:", error);
+        if (isMounted) {
+          setCurrentUser(null);
+        }
+      }
     };
 
-    syncCartCount();
-    const cartUpdatedEvent = getCartUpdatedEventName();
-    window.addEventListener(cartUpdatedEvent, syncCartCount);
-    window.addEventListener("storage", syncCartCount);
+    fetchCurrentUser();
 
     return () => {
-      window.removeEventListener(cartUpdatedEvent, syncCartCount);
-      window.removeEventListener("storage", syncCartCount);
+      isMounted = false;
     };
-  }, []);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCartPreview = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/cart`, {
+          credentials: "include",
+        });
+
+        if (response.status === 401) {
+          if (isMounted) {
+            setCartPreviewItems([]);
+            setCartSubtotal(0);
+            setCartCount(0);
+            setCartError("");
+          }
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch cart preview");
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload.items) ? payload.items : [];
+        const hydratedItems = items.map((item) => ({
+          ...item,
+          total: Number(item.lineTotal) || 0,
+          course: {
+            ...item.course,
+            img: courseImageMap[item.course?.imageKey] || "",
+          },
+        }));
+
+        if (isMounted) {
+          setCartPreviewItems(hydratedItems);
+          setCartSubtotal(Number(payload.subtotal) || 0);
+          setCartCount(hydratedItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
+          setCartError("");
+        }
+      } catch (error) {
+        console.error("Header cart preview fetch error:", error);
+        if (isMounted) {
+          setCartError("Unable to load cart preview.");
+        }
+      }
+    };
+
+    fetchCartPreview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.pathname, isCartSidebarOpen]);
 
   useEffect(() => {
     if (!isCartSidebarOpen) {
@@ -99,10 +140,61 @@ function Header() {
 
   const formatCurrency = (amount) => `$${Number(amount).toFixed(2)}`;
 
-  const handleSidebarRemove = (courseId) => {
-    const updated = removeCourseFromCart(courseId);
-    setCartItems(updated);
-    setCartCount(updated.reduce((sum, item) => sum + item.quantity, 0));
+  const handleSidebarRemove = async (courseId) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/cart/${courseId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove cart item");
+      }
+
+      const payload = await response.json();
+      const items = Array.isArray(payload.items) ? payload.items : [];
+      const hydratedItems = items.map((item) => ({
+        ...item,
+        total: Number(item.lineTotal) || 0,
+        course: {
+          ...item.course,
+          img: courseImageMap[item.course?.imageKey] || "",
+        },
+      }));
+
+      setCartPreviewItems(hydratedItems);
+      setCartSubtotal(Number(payload.subtotal) || 0);
+      setCartCount(hydratedItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
+      setCartError("");
+    } catch (error) {
+      console.error("Header cart remove error:", error);
+      setCartError("Unable to remove cart item.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok && response.status !== 401) {
+        throw new Error("Failed to logout");
+      }
+
+      setCurrentUser(null);
+      setCartPreviewItems([]);
+      setCartSubtotal(0);
+      setCartCount(0);
+      setCartError("");
+      setAuthError("");
+      setIsCartSidebarOpen(false);
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Logout error:", error);
+      setAuthError("Unable to logout. Please try again.");
+    }
   };
 
   const toggleSubMenu = (e) => {
@@ -544,13 +636,33 @@ function Header() {
               </button>
 
               <div className="d-flex align-items-center gap-2 flex-wrap">
-                <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
-                <Link className="btn btn-success" to="/register">Register</Link>
+                {currentUser ? (
+                  <>
+                    <span className="small text-dark">Hi, {currentUser.name}</span>
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger d-none d-sm-block"
+                      onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
+                    <Link className="btn btn-success" to="/register">Register</Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
       </nav>
+
+      {authError ? (
+        <div className="container mt-2">
+          <p className="text-danger small mb-0">{authError}</p>
+        </div>
+      ) : null}
 
       {isCartSidebarOpen && (
         <button
@@ -582,6 +694,10 @@ function Header() {
         </div>
 
         <div className="flex-grow-1 overflow-auto p-3">
+          {cartError ? (
+            <p className="text-danger small mb-3">{cartError}</p>
+          ) : null}
+
           {cartPreviewItems.length === 0 ? (
             <p className="text-muted mb-0">Your cart is empty.</p>
           ) : (
