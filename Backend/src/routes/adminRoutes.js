@@ -3,21 +3,31 @@ const router = express.Router();
 const {
   getUsers,
   getUserById,
-  addUserManually,  // ✅ ADDED
+  addUserManually,
   updateUser,
   deleteUser,
+  getOrders,
+  getCourses,
 } = require('../controller/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// ✅ FIXED: Added POST route for adding users manually
+// User management routes
 router.route('/users')
   .get(protect, admin, getUsers)
-  .post(protect, admin, addUserManually);  // NEW: Add user route
+  .post(protect, admin, addUserManually);
 
 router
   .route('/users/:id')
   .get(protect, admin, getUserById)
   .put(protect, admin, updateUser)
   .delete(protect, admin, deleteUser);
+
+// Orders management routes
+router.route('/orders')
+  .get(protect, admin, getOrders);
+
+// Courses management routes
+router.route('/courses')
+  .get(protect, admin, getCourses);
 
 module.exports = router;

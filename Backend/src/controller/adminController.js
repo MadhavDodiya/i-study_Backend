@@ -1,167 +1,200 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-// @desc    Get all users
-// @route   GET /api/admin/users
-// @access  Private/Admin
+// Get all users
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({}).select('-password');
     res.status(200).json({
       success: true,
-      users: users  // ✅ FIXED: Changed to 'users' key for consistency
+      users: users,
+      count: users.length,
     });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Get users error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Server Error',
-      error: error.message 
+      message: 'Failed to fetch users',
+      error: error.message,
     });
   }
 };
 
-// @desc    Get user by ID
-// @route   GET /api/admin/users/:id
-// @access  Private/Admin
+// Get user by ID
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-    if (user) {
-      res.status(200).json({
-        success: true,
-        data: user
-      });
-    } else {
-      res.status(404).json({ 
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: 'User not found' 
+        message: 'User not found',
       });
     }
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Get user error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Server Error',
-      error: error.message 
+      message: 'Failed to fetch user',
+      error: error.message,
     });
   }
 };
 
-// @desc    Add user manually (Admin only)
-// @route   POST /api/admin/users/add
-// @access  Private/Admin
-// ✅ NEW: Added this missing function
+// Add user manually
 const addUserManually = async (req, res) => {
   try {
-    const { name, email, password, role, isActive } = req.body;
+    const { name, email, password, isAdmin, isActive } = req.body;
 
-    // Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email, and password'
+        message: 'Name, email, and password are required',
       });
     }
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email'
+        message: 'User already exists',
       });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
-    user = await User.create({
+    const user = await User.create({
       name,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
-      isAdmin: role === 'admin' ? true : false,  // ✅ FIXED: Using isAdmin field
-      isActive: isActive !== undefined ? isActive : true
+      isAdmin: isAdmin || false,
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     res.status(201).json({
       success: true,
       message: 'User added successfully',
-      data: user
+      data: user,
     });
   } catch (error) {
+    console.error('Add user error:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Failed to add user',
+      error: error.message,
     });
   }
 };
 
-// @desc    Update user
-// @route   PUT /api/admin/users/:id
-// @access  Private/Admin
+// Update user
 const updateUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const { name, email, isAdmin, isActive } = req.body;
+    const updateData = {};
 
-    if (user) {
-      user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
-      user.isAdmin = req.body.isAdmin !== undefined ? req.body.isAdmin : user.isAdmin;
-      user.isActive = req.body.isActive !== undefined ? req.body.isActive : user.isActive;
+    if (name) updateData.name = name;
+    if (email) updateData.email = email.toLowerCase();
+    if (isAdmin !== undefined) updateData.isAdmin = isAdmin;
+    if (isActive !== undefined) updateData.isActive = isActive;
 
-      const updatedUser = await user.save();
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    }).select('-password');
 
-      res.status(200).json({
-        success: true,
-        message: 'User updated successfully',
-        data: {
-          _id: updatedUser._id,
-          name: updatedUser.name,
-          email: updatedUser.email,
-          isAdmin: updatedUser.isAdmin,
-          isActive: updatedUser.isActive
-        }
-      });
-    } else {
-      res.status(404).json({ 
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: 'User not found' 
+        message: 'User not found',
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      data: user,
+    });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Update user error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Server Error',
-      error: error.message 
+      message: 'Failed to update user',
+      error: error.message,
     });
   }
 };
 
-// @desc    Delete user
-// @route   DELETE /api/admin/users/:id
-// @access  Private/Admin
+// Delete user
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);  // ✅ FIXED: Use findByIdAndDelete instead of remove()
+    const user = await User.findByIdAndDelete(req.params.id);
 
-    if (user) {
-      res.status(200).json({ 
-        success: true,
-        message: 'User removed',
-        data: user
-      });
-    } else {
-      res.status(404).json({ 
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: 'User not found' 
+        message: 'User not found',
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
+      data: user,
+    });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Delete user error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Server Error',
-      error: error.message 
+      message: 'Failed to delete user',
+      error: error.message,
+    });
+  }
+};
+
+// Get all orders
+const getOrders = async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    const orders = await Order.find({})
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      orders: orders,
+      count: orders.length,
+    });
+  } catch (error) {
+    console.error('Get orders error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch orders',
+      error: error.message,
+    });
+  }
+};
+
+// Get all courses
+const getCourses = async (req, res) => {
+  try {
+    const Course = require('../models/Course');
+    const courses = await Course.find({}).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      courses: courses,
+      count: courses.length,
+    });
+  } catch (error) {
+    console.error('Get courses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch courses',
+      error: error.message,
     });
   }
 };
@@ -169,7 +202,9 @@ const deleteUser = async (req, res) => {
 module.exports = {
   getUsers,
   getUserById,
-  addUserManually,  // ✅ ADDED export
+  addUserManually,
   updateUser,
   deleteUser,
+  getOrders,
+  getCourses,
 };
