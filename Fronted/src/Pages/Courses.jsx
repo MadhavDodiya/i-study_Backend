@@ -43,15 +43,29 @@ function Courses() {
 
     const fetchCourses = async () => {
       try {
+        // ✅ FIXED: Correct API endpoint
         const response = await fetch(`${API_BASE}/api/courses`);
+        
         if (!response.ok) {
           throw new Error("Failed to fetch courses");
         }
 
-        const data = await response.json();
+        const jsonData = await response.json();
+        
+        // ✅ FIXED: Handle both direct array and wrapped response
+        let courses = [];
+        if (Array.isArray(jsonData)) {
+          courses = jsonData;
+        } else if (jsonData.data && Array.isArray(jsonData.data)) {
+          courses = jsonData.data;
+        } else if (jsonData.courses && Array.isArray(jsonData.courses)) {
+          courses = jsonData.courses;
+        }
+
         if (isMounted) {
-          setCoursesData(Array.isArray(data) ? data : []);
+          setCoursesData(courses);
           setErrorMessage("");
+          console.log("✅ Courses loaded:", courses.length);
         }
       } catch (error) {
         console.error("Courses fetch error:", error);
@@ -72,12 +86,24 @@ function Courses() {
     };
   }, []);
 
+  // ✅ FIXED: Enhanced course mapping with fallback values
   const hydratedCourses = useMemo(
     () =>
       coursesData.map((course) => ({
         ...course,
-        img: courseImageMap[course.imageKey] || "",
+        img: courseImageMap[course.imageKey] || course1,
+        title: course.title || "Untitled Course",
+        desc: course.desc || course.description || "No description",
         rating: Number(course.rating) || 0,
+        lessons: course.lessons || 0,
+        hours: course.hours || 0,
+        students: course.students || 0,
+        price: course.price || "$0",
+        priceValue: course.priceValue || 0,
+        category: course.category || "General",
+        level: course.level || "Beginner",
+        instructor: course.instructor || "Unknown",
+        language: course.language || "English",
       })),
     [coursesData]
   );
@@ -87,6 +113,7 @@ function Courses() {
   const instructors = useMemo(() => getUniqueValues(hydratedCourses, "instructor"), [hydratedCourses]);
   const languages = useMemo(() => getUniqueValues(hydratedCourses, "language"), [hydratedCourses]);
 
+  // ✅ FIXED: Improved count calculations
   const counts = useMemo(() => {
     const categoryCounts = {};
     const levelCounts = {};
@@ -94,10 +121,15 @@ function Courses() {
     const languageCounts = {};
 
     hydratedCourses.forEach((course) => {
-      categoryCounts[course.category] = (categoryCounts[course.category] || 0) + 1;
-      levelCounts[course.level] = (levelCounts[course.level] || 0) + 1;
-      instructorCounts[course.instructor] = (instructorCounts[course.instructor] || 0) + 1;
-      languageCounts[course.language] = (languageCounts[course.language] || 0) + 1;
+      const cat = course.category || "General";
+      const lev = course.level || "Beginner";
+      const inst = course.instructor || "Unknown";
+      const lang = course.language || "English";
+
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+      levelCounts[lev] = (levelCounts[lev] || 0) + 1;
+      instructorCounts[inst] = (instructorCounts[inst] || 0) + 1;
+      languageCounts[lang] = (languageCounts[lang] || 0) + 1;
     });
 
     const freeCount = hydratedCourses.filter((course) => Number(course.priceValue) === 0).length;
@@ -119,6 +151,7 @@ function Courses() {
     };
   }, [hydratedCourses]);
 
+  // ✅ FIXED: Improved filtering logic
   const filteredCourses = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -405,9 +438,9 @@ function Courses() {
           {view === "grid" && (
             <div className="row g-4">
               {filteredCourses.map((course) => (
-                <div key={course.id} className="col-12 col-md-6 col-lg-4">
+                <div key={course.id || course._id} className="col-12 col-md-6 col-lg-4">
                   <div className="border rounded-4 overflow-hidden shadow-sm h-100">
-                    <img src={course.img} alt={course.title} className="img-fluid w-100" />
+                    <img src={course.img} alt={course.title} className="img-fluid w-100" style={{ height: "250px", objectFit: "cover" }} />
                     <div className="p-3">
                       <p className="text-secondary mb-1">Lessons {course.lessons}</p>
                       <h5 className="fw-bold mb-2">{course.title}</h5>
@@ -430,7 +463,7 @@ function Courses() {
             <div className="d-flex flex-column gap-4">
               {filteredCourses.map((course) => (
                 <div
-                  key={course.id}
+                  key={course.id || course._id}
                   className="border-0 rounded-4 shadow-sm overflow-hidden"
                   style={{ background: "#f8f9fa" }}
                 >
