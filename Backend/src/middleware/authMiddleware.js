@@ -28,14 +28,12 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
+  // ✅ FIXED: Check isAdmin instead of role
   if (req.user && req.user.isAdmin) {
     next();
   } else {
-    res.status(401).json({ message: 'Not authorized as an admin' });
+    res.status(403).json({ message: "admin access required" });
   }
 };
 
-module.exports = {
-  protect,
-  admin,
-};
+module.exports = { protect, admin };

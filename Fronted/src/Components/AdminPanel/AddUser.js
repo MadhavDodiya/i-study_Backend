@@ -1,249 +1,277 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 
 const AddUser = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'user',
-    isActive: true
-  });
+    // ✅ FIXED: Use correct API endpoint
+    const API_URL =
+        // process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
-
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-  // Fetch all users
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await axios.get(`${API_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUsers(response.data.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setMessage('Failed to fetch users');
-      setMessageType('error');
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        password: "",
+        role: "user",
+        isActive: true,
     });
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
 
-    try {
-      const token = localStorage.getItem('authToken');
-      
-      const response = await axios.post(`${API_URL}/users/add`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    // ✅ FIXED: Wrapped in useCallback to safely use in useEffect dependency array
+    const fetchUsers = useCallback(async () => {
+        try {
+            // ✅ FIXED: Get token from correct key
+            const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+            if (!token) {
+                setMessage("Not authenticated. Please login.");
+                setMessageType("error");
+                return;
+            }
 
-      if (response.data.success) {
-        setMessage('User added successfully!');
-        setMessageType('success');
-        
-        // Reset form
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          role: 'user',
-          isActive: true
-        });
+            // ✅ FIXED: Use correct endpoint (/api/admin/users, not /api/users)
+            const response = await axios.get(`${API_URL}/admin/users`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-        // Refresh user list
+            // ✅ FIXED: Access correct response data key
+            const fetchedUsers = response.data.users || [];
+            setUsers(fetchedUsers);
+        } catch (error) {
+            console.error("Fetch error:", error);
+            setMessage(error.response?.data?.message || "Failed to fetch users");
+            setMessageType("error");
+        }
+    }, [API_URL]);
+
+    // ✅ FIXED: Added fetchUsers to dependency array (safe now due to useCallback)
+    useEffect(() => {
         fetchUsers();
-      }
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Error adding user');
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, [fetchUsers]);
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
-      return;
-    }
+    // ================= HANDLE INPUT =================
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === "checkbox" ? checked : value,
+        }));
+    };
 
-    try {
-      const token = localStorage.getItem('authToken');
-      
-      const response = await axios.delete(`${API_URL}/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    // ================= ADD USER =================
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage("");
 
-      if (response.data.success) {
-        setMessage('User deleted successfully!');
-        setMessageType('success');
-        fetchUsers();
-      }
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Error deleting user');
-      setMessageType('error');
-    }
-  };
+        try {
+            // ✅ FIXED: Get token from correct key
+            const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+            if (!token) throw new Error("Unauthorized - No token found");
 
-  return (
-    <div className="admin-panel">
-      <h1>Admin Panel - User Management</h1>
+            // ✅ FIXED: Use correct endpoint
+            const response = await axios.post(
+                `${API_URL}/admin/users`,  // FIXED: Changed from /api/users/add
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-      {/* Add User Form */}
-      <div className="add-user-section">
-        <h2>Add New User</h2>
-        
-        {message && (
-          <div className={`message ${messageType}`}>
-            {message}
-          </div>
-        )}
+            if (response.data.success) {
+                setMessage("User added successfully!");
+                setMessageType("success");
 
-        <form onSubmit={handleSubmit} className="user-form">
-          <div className="form-group">
-            <label htmlFor="name">Name:</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter user name"
-            />
-          </div>
+                setFormData({
+                    name: "",
+                    email: "",
+                    password: "",
+                    role: "user",
+                    isActive: true,
+                });
 
-          <div className="form-group">
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter user email"
-            />
-          </div>
+                fetchUsers();
+            }
+        } catch (error) {
+            console.error("Submit error:", error);
+            setMessage(
+                error.response?.data?.message || error.message || "Error occurred"
+            );
+            setMessageType("error");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          <div className="form-group">
-            <label htmlFor="password">Password:</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter password"
-              minLength="6"
-            />
-          </div>
+    // ================= DELETE USER =================
+    const handleDeleteUser = async (userId) => {
+        if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-          <div className="form-group">
-            <label htmlFor="role">Role:</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
+        try {
+            // ✅ FIXED: Get token from correct key
+            const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+            if (!token) throw new Error("Unauthorized");
+
+            // ✅ FIXED: Use correct endpoint
+            const response = await axios.delete(`${API_URL}/admin/users/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.data.success) {
+                setMessage("User deleted successfully!");
+                setMessageType("success");
+                fetchUsers();
+            } else {
+                setMessage("Failed to delete user");
+                setMessageType("error");
+            }
+        } catch (error) {
+            console.error("Delete error:", error);
+            setMessage(
+                error.response?.data?.message || error.message || "Delete failed"
+            );
+            setMessageType("error");
+        }
+    };
+
+    return (
+        <div style={{ padding: "30px" }}>
+            <h1>User Management</h1>
+
+            {/* MESSAGE */}
+            {message && (
+                <div
+                    style={{
+                        padding: "10px",
+                        marginBottom: "15px",
+                        color: messageType === "error" ? "red" : "green",
+                        fontWeight: "bold",
+                    }}
+                >
+                    {message}
+                </div>
+            )}
+
+            {/* ADD USER FORM */}
+            <form
+                onSubmit={handleSubmit}
+                style={{
+                    marginBottom: "30px",
+                    padding: "20px",
+                    border: "1px solid #ddd",
+                }}
             >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+                <h2>Add New User</h2>
 
-          <div className="form-group checkbox">
-            <label htmlFor="isActive">
-              <input
-                type="checkbox"
-                id="isActive"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleInputChange}
-              />
-              Active
-            </label>
-          </div>
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    style={{ display: "block", marginBottom: "10px", width: "100%" }}
+                />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary"
-          >
-            {loading ? 'Adding...' : 'Add User'}
-          </button>
-        </form>
-      </div>
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    style={{ display: "block", marginBottom: "10px", width: "100%" }}
+                />
 
-      {/* Users List */}
-      <div className="users-list-section">
-        <h2>All Users ({users.length})</h2>
-        
-        {users.length === 0 ? (
-          <p>No users found</p>
-        ) : (
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`badge badge-${user.role}`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status ${user.isActive ? 'active' : 'inactive'}`}>
-                      {user.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => handleDeleteUser(user._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    minLength="6"
+                    required
+                    style={{ display: "block", marginBottom: "10px", width: "100%" }}
+                />
+
+                <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    style={{ display: "block", marginBottom: "10px", width: "100%" }}
+                >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+
+                <label style={{ display: "block", marginBottom: "10px" }}>
+                    <input
+                        type="checkbox"
+                        name="isActive"
+                        checked={formData.isActive}
+                        onChange={handleInputChange}
+                    />
+                    {" "}Active
+                </label>
+
+                <button type="submit" disabled={loading}>
+                    {loading ? "Adding..." : "Add User"}
+                </button>
+            </form>
+
+            {/* USER TABLE */}
+            <h2>All Users ({users.length})</h2>
+
+            {users.length === 0 ? (
+                <p>No users found</p>
+            ) : (
+                <table border="1" width="100%" cellPadding="10">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {users.map((user) => (
+                            <tr key={user._id}>
+                                <td>{user.name}</td>
+                                <td>{user.email}</td>
+                                <td>{user.isAdmin ? "Admin" : "User"}</td>
+                                <td>{user.isActive ? "Active" : "Inactive"}</td>
+                                <td>
+                                    {user.createdAt
+                                        ? new Date(user.createdAt).toLocaleDateString()
+                                        : "N/A"}
+                                </td>
+                                <td>
+                                    <button
+                                        style={{ color: "red" }}
+                                        onClick={() => handleDeleteUser(user._id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+        </div>
+    );
 };
 
 export default AddUser;

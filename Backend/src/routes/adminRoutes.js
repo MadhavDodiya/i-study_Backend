@@ -3,12 +3,17 @@ const router = express.Router();
 const {
   getUsers,
   getUserById,
+  addUserManually,  // ✅ ADDED
   updateUser,
   deleteUser,
 } = require('../controller/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-router.route('/users').get(protect, admin, getUsers);
+// ✅ FIXED: Added POST route for adding users manually
+router.route('/users')
+  .get(protect, admin, getUsers)
+  .post(protect, admin, addUserManually);  // NEW: Add user route
+
 router
   .route('/users/:id')
   .get(protect, admin, getUserById)
