@@ -19,6 +19,28 @@ const courseImageMap = {
   course6,
 };
 
+function resolveCourseImage(imageKey) {
+  if (typeof imageKey !== "string" || !imageKey.trim()) {
+    return "";
+  }
+
+  const raw = imageKey.trim();
+  if (/^https?:\/\//i.test(raw)) {
+    return raw;
+  }
+  if (/^\/?uploads\//i.test(raw)) {
+    return `${API_BASE}/${raw.replace(/^\/+/, "")}`;
+  }
+
+  const normalizedKey = imageKey
+    .trim()
+    .toLowerCase()
+    .replace(/^.*[\\/]/, "")
+    .replace(/\.[a-z0-9]+$/i, "");
+
+  return courseImageMap[normalizedKey] || "";
+}
+
 function Header() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -101,7 +123,7 @@ function Header() {
           total: Number(item.lineTotal) || 0,
           course: {
             ...item.course,
-            img: courseImageMap[item.course?.imageKey] || "",
+            img: resolveCourseImage(item.course?.imageKey),
           },
         }));
 
@@ -158,7 +180,7 @@ function Header() {
         total: Number(item.lineTotal) || 0,
         course: {
           ...item.course,
-          img: courseImageMap[item.course?.imageKey] || "",
+          img: resolveCourseImage(item.course?.imageKey),
         },
       }));
 

@@ -4,10 +4,13 @@ import AdminHeader from './AdminHeader';
 import AdminLogin from './AdminLogin';
 
 const AdminLayout = ({ children }) => {
+  const rawApiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_BASE = rawApiBase.replace(/\/+$/, '').replace(/\/api$/i, '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   // ✅ Check authentication on mount
   useEffect(() => {
@@ -17,28 +20,68 @@ const AdminLayout = ({ children }) => {
         const userStr = localStorage.getItem('user');
 
         if (token && userStr) {
-          setUser(JSON.parse(userStr));
+          const response = await fetch(`${API_BASE}/api/auth/me`, {
+            credentials: 'include',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!response.ok) {
+            throw new Error('Session expired');
+          }
+
+          const payload = await response.json();
+          if (!payload?.user?.isAdmin) {
+            throw new Error('Only admins can access this panel');
+          }
+
+          setUser(payload.user);
           setIsAuthenticated(true);
+          setAuthError('');
         }
       } catch (error) {
         console.error('Auth check error:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setAuthError(error.message || 'Please login with an admin account');
+        setIsAuthenticated(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [API_BASE]);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    if (!token) return;
 
-    if (token && userStr) {
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/me`, {
+        credentials: 'include',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error('Login validation failed');
+      }
+
+      const payload = await response.json();
+      if (!payload?.user?.isAdmin) {
+        throw new Error('Only admins can access this panel');
+      }
+
       setIsAuthenticated(true);
-      setUser(JSON.parse(userStr));
+      setUser(payload.user);
+      setAuthError('');
+      localStorage.setItem('user', JSON.stringify(payload.user));
+    } catch (error) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setIsAuthenticated(false);
+      setUser(null);
+      setAuthError(error.message || 'Please login with an admin account');
     }
   };
 
@@ -47,6 +90,7 @@ const AdminLayout = ({ children }) => {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setUser(null);
+    setAuthError('');
   };
 
   useEffect(() => {
@@ -91,7 +135,7 @@ const AdminLayout = ({ children }) => {
 
   // ✅ Show login form if not authenticated
   if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
+    return <AdminLogin onLoginSuccess={handleLoginSuccess} initialError={authError} />;
   }
 
   // ✅ Show admin dashboard if authenticated

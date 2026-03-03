@@ -1,10 +1,36 @@
 const Cart = require("../models/Cart");
 const Course = require("../models/Course");
 const Order = require("../models/Order");
+const mongoose = require("mongoose");
 
 const TAX_RATE = 0.1;
 
 const normalizeAmount = (value) => Math.round(Number(value) * 100) / 100;
+
+const findCoursesForCartItems = async (cartItems) => {
+  const objectIds = [];
+  const numericIds = [];
+
+  for (const item of cartItems) {
+    const courseId = String(item.courseId || "").trim();
+    if (!courseId) continue;
+    if (mongoose.isValidObjectId(courseId)) {
+      objectIds.push(new mongoose.Types.ObjectId(courseId));
+      continue;
+    }
+    const numericId = Number(courseId);
+    if (Number.isInteger(numericId) && numericId > 0) {
+      numericIds.push(numericId);
+    }
+  }
+
+  const query = [];
+  if (objectIds.length > 0) query.push({ _id: { $in: objectIds } });
+  if (numericIds.length > 0) query.push({ id: { $in: numericIds } });
+  if (query.length === 0) return [];
+
+  return Course.find({ $or: query }).lean();
+};
 
 const createCheckoutOrder = async (req, res, next) => {
   try {
@@ -20,20 +46,25 @@ const createCheckoutOrder = async (req, res, next) => {
       return res.status(400).json({ message: "cart is empty" });
     }
 
-    const courseIds = [...new Set(cartItems.map((item) => Number(item.courseId)))];
-    const courses = await Course.find({ id: { $in: courseIds } }).lean();
-    const coursesById = new Map(courses.map((course) => [Number(course.id), course]));
+    const courses = await findCoursesForCartItems(cartItems);
+    const coursesById = new Map();
+    for (const course of courses) {
+      coursesById.set(String(course._id), course);
+      if (course.id !== undefined && course.id !== null) {
+        coursesById.set(String(course.id), course);
+      }
+    }
 
     const orderItems = cartItems
       .map((entry) => {
-        const course = coursesById.get(Number(entry.courseId));
+        const course = coursesById.get(String(entry.courseId));
         if (!course) return null;
 
         const unitPrice = Number(course.priceValue) || 0;
         const quantity = Number(entry.quantity) || 1;
 
         return {
-          courseId: Number(entry.courseId),
+          courseId: String(entry.courseId),
           title: course.title,
           imageKey: course.imageKey || "",
           unitPrice,

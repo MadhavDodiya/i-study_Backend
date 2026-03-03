@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const contentRoutes = require('./routes/contentRoutes');
 const courseRoutes = require('./routes/courseRoutes');
@@ -26,6 +27,7 @@ app.use(
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is running' });

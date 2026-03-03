@@ -7,6 +7,7 @@ const {
   updateUser,
   deleteUser,
   getOrders,
+  updateOrderStatus,
   getCourses,
 } = require('../controller/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -25,6 +26,8 @@ router
 // Orders management routes
 router.route('/orders')
   .get(protect, admin, getOrders);
+router.route('/orders/:id/status')
+  .patch(protect, admin, updateOrderStatus);
 
 // Courses management routes
 router.route('/courses')

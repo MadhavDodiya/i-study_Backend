@@ -12,8 +12,11 @@ import Checkout from './Pages/Checkout.jsx';
 import Footer from './Components/Footer';
 import Preloader from './Components/Preloader.jsx';
 
-// ✅ Admin imports
 import AdminLayout from './Components/Admin/AdminLayout';
+import Dashboard from './Pages/Admin/Dashboard.jsx';
+import UserManagement from './Pages/Admin/UserManagement.jsx';
+import CourseManagement from './Pages/Admin/CourseManagement.jsx';
+import OrderManagement from './Pages/Admin/OrderManagement.jsx';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -33,65 +36,111 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ✅ Admin Routes - With built-in auth */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <AdminLayout>
-              <Routes>
-                <Route path="/" element={<AdminLayout children={null} />} />
-              </Routes>
+              <Dashboard />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminLayout>
+              <Dashboard />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminLayout>
+              <UserManagement />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/courses"
+          element={
+            <AdminLayout>
+              <CourseManagement />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminLayout>
+              <OrderManagement />
             </AdminLayout>
           }
         />
 
-        {/* ✅ Regular user routes */}
-        <Route path="/" element={
-          <>
-            <Header />
-            <Home />
-            <Footer />
-          </>
-        } />
-        <Route path="/courses" element={
-          <>
-            <Header />
-            <Courses />
-            <Footer />
-          </>
-        } />
-        <Route path="/coursedetail/:id" element={
-          <>
-            <Header />
-            <CourseDetail />
-            <Footer />
-          </>
-        } />
-        <Route path="/wishlist" element={
-          <>
-            <Header />
-            <Wishlist />
-            <Footer />
-          </>
-        } />
-        <Route path="/cart" element={
-          <>
-            <Header />
-            <Cart />
-            <Footer />
-          </>
-        } />
-        <Route path="/checkout" element={
-          <>
-            <Header />
-            <Checkout />
-            <Footer />
-          </>
-        } />
+        <Route
+          path="/"
+          element={
+            <>
+              <Header />
+              <Home />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/courses"
+          element={
+            <>
+              <Header />
+              <Courses />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/coursedetail/:id"
+          element={
+            <>
+              <Header />
+              <CourseDetail />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/wishlist"
+          element={
+            <>
+              <Header />
+              <Wishlist />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <>
+              <Header />
+              <Cart />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <>
+              <Header />
+              <Checkout />
+              <Footer />
+            </>
+          }
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        {/* ✅ Catch all */}
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

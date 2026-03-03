@@ -9,9 +9,10 @@ const cartSchema = new mongoose.Schema(
       index: true,
     },
     courseId: {
-      type: Number,
+      type: String,
       required: true,
       index: true,
+      trim: true,
     },
     quantity: {
       type: Number,

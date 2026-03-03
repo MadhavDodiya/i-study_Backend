@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const orderItemSchema = new mongoose.Schema(
   {
     courseId: {
-      type: Number,
+      type: String,
       required: true,
     },
     title: {

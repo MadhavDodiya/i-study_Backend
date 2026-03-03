@@ -1,17 +1,59 @@
 const Cart = require("../models/Cart");
 const Course = require("../models/Course");
+const mongoose = require("mongoose");
+
+const normalizeCourseIdInput = (value) => String(value || "").trim();
+
+const findCourseByInputId = async (rawCourseId) => {
+  if (mongoose.isValidObjectId(rawCourseId)) {
+    const byObjectId = await Course.findById(rawCourseId).lean();
+    if (byObjectId) return byObjectId;
+  }
+
+  const numericId = Number(rawCourseId);
+  if (Number.isInteger(numericId) && numericId > 0) {
+    return Course.findOne({ id: numericId }).lean();
+  }
+
+  return null;
+};
+
+const findCoursesForCartItems = async (cartItems) => {
+  const objectIds = [];
+  const numericIds = [];
+
+  for (const item of cartItems) {
+    const courseId = String(item.courseId || "").trim();
+    if (!courseId) continue;
+    if (mongoose.isValidObjectId(courseId)) {
+      objectIds.push(new mongoose.Types.ObjectId(courseId));
+      continue;
+    }
+    const numericId = Number(courseId);
+    if (Number.isInteger(numericId) && numericId > 0) {
+      numericIds.push(numericId);
+    }
+  }
+
+  const query = [];
+  if (objectIds.length > 0) query.push({ _id: { $in: objectIds } });
+  if (numericIds.length > 0) query.push({ id: { $in: numericIds } });
+  if (query.length === 0) return [];
+
+  return Course.find({ $or: query }).lean();
+};
 
 const normalizeCartResponse = (cartItems, coursesById) => {
   const items = cartItems
     .map((entry) => {
-      const course = coursesById.get(entry.courseId);
+      const course = coursesById.get(String(entry.courseId));
       if (!course) return null;
 
       const unitPrice = Number(course.priceValue) || 0;
       const quantity = Number(entry.quantity) || 1;
 
       return {
-        courseId: entry.courseId,
+        courseId: String(entry.courseId),
         quantity,
         unitPrice,
         lineTotal: unitPrice * quantity,
@@ -33,9 +75,14 @@ const getCart = async (req, res, next) => {
       return res.status(200).json({ items: [], subtotal: 0 });
     }
 
-    const courseIds = [...new Set(cartItems.map((item) => Number(item.courseId)))];
-    const courses = await Course.find({ id: { $in: courseIds } }).lean();
-    const coursesById = new Map(courses.map((course) => [Number(course.id), course]));
+    const courses = await findCoursesForCartItems(cartItems);
+    const coursesById = new Map();
+    for (const course of courses) {
+      coursesById.set(String(course._id), course);
+      if (course.id !== undefined && course.id !== null) {
+        coursesById.set(String(course.id), course);
+      }
+    }
 
     return res.status(200).json(normalizeCartResponse(cartItems, coursesById));
   } catch (error) {
@@ -46,10 +93,10 @@ const getCart = async (req, res, next) => {
 const addToCart = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const courseId = Number(req.body.courseId);
+    const incomingCourseId = normalizeCourseIdInput(req.body.courseId);
     const quantity = Number(req.body.quantity ?? 1);
 
-    if (!Number.isInteger(courseId) || courseId <= 0) {
+    if (!incomingCourseId) {
       return res.status(400).json({ message: "invalid course id" });
     }
 
@@ -57,11 +104,12 @@ const addToCart = async (req, res, next) => {
       return res.status(400).json({ message: "quantity must be greater than 0" });
     }
 
-    const course = await Course.findOne({ id: courseId }).lean();
+    const course = await findCourseByInputId(incomingCourseId);
     if (!course) {
       return res.status(404).json({ message: "course not found" });
     }
 
+    const courseId = String(course._id);
     const existing = await Cart.findOne({ userId, courseId });
     if (existing) {
       existing.quantity += quantity;
@@ -79,10 +127,10 @@ const addToCart = async (req, res, next) => {
 const updateCartItemQuantity = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const courseId = Number(req.params.courseId);
+    const courseId = normalizeCourseIdInput(req.params.courseId);
     const quantity = Number(req.body.quantity);
 
-    if (!Number.isInteger(courseId) || courseId <= 0) {
+    if (!courseId) {
       return res.status(400).json({ message: "invalid course id" });
     }
 
@@ -107,9 +155,9 @@ const updateCartItemQuantity = async (req, res, next) => {
 const removeFromCart = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const courseId = Number(req.params.courseId);
+    const courseId = normalizeCourseIdInput(req.params.courseId);
 
-    if (!Number.isInteger(courseId) || courseId <= 0) {
+    if (!courseId) {
       return res.status(400).json({ message: "invalid course id" });
     }
 

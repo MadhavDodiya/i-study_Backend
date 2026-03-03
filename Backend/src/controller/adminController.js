@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const Order = require('../models/Order');
 
 // Get all users
 const getUsers = async (req, res) => {
@@ -158,7 +159,6 @@ const deleteUser = async (req, res) => {
 // Get all orders
 const getOrders = async (req, res) => {
   try {
-    const Order = require('../models/Order');
     const orders = await Order.find({})
       .populate('userId', 'name email')
       .sort({ createdAt: -1 });
@@ -173,6 +173,47 @@ const getOrders = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch orders',
+      error: error.message,
+    });
+  }
+};
+
+// Update order status (checkout management)
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body || {};
+    const allowedStatus = ['placed', 'paid', 'cancelled'];
+
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Use placed, paid, or cancelled.',
+      });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    ).populate('userId', 'name email');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Order status updated successfully',
+      order,
+    });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update order status',
       error: error.message,
     });
   }
@@ -206,5 +247,6 @@ module.exports = {
   updateUser,
   deleteUser,
   getOrders,
+  updateOrderStatus,
   getCourses,
 };

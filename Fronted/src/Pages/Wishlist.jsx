@@ -19,6 +19,28 @@ const courseImageMap = {
     course6,
 };
 
+function resolveCourseImage(imageKey) {
+    if (typeof imageKey !== "string" || !imageKey.trim()) {
+        return "";
+    }
+
+    const raw = imageKey.trim();
+    if (/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+    if (/^\/?uploads\//i.test(raw)) {
+        return `${API_BASE}/${raw.replace(/^\/+/, "")}`;
+    }
+
+    const normalizedKey = imageKey
+        .trim()
+        .toLowerCase()
+        .replace(/^.*[\\/]/, "")
+        .replace(/\.[a-z0-9]+$/i, "");
+
+    return courseImageMap[normalizedKey] || "";
+}
+
 function Wishlist() {
     const navigate = useNavigate();
     const [wishlistRows, setWishlistRows] = useState([]);
@@ -47,7 +69,7 @@ function Wishlist() {
                 ...item,
                 course: {
                     ...item.course,
-                    img: courseImageMap[item.course?.imageKey] || "",
+                    img: resolveCourseImage(item.course?.imageKey),
                 },
             }));
 
@@ -202,7 +224,7 @@ function Wishlist() {
                                                 <button
                                                     type="button"
                                                     className="btn px-5 py-2"
-                                                    onClick={() => handleAddToCart(course.id)}
+                                                    onClick={() => handleAddToCart(item.courseId)}
                                                     style={{ backgroundColor: "#10a66d", color: "#fff", fontSize: "16px", minWidth: "180px" }}>
                                                     Add To Cart
                                                 </button>
@@ -216,7 +238,7 @@ function Wishlist() {
                                                 <button
                                                     type="button"
                                                     className="btn p-0 border-0"
-                                                    onClick={() => handleRemove(course.id)}
+                                                    onClick={() => handleRemove(item.courseId)}
                                                     style={{ color: "#0b2219", fontSize: "16px", backgroundColor: "transparent" }}>
                                                     <i className="bi bi-x-lg me-2"></i>Remove
                                                 </button>

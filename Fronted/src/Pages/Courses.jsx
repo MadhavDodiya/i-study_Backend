@@ -20,6 +20,40 @@ const courseImageMap = {
   course6,
 };
 
+const fallbackImages = [course1, course2, course3, course4, course5, course6];
+
+function resolveCourseImage(imageKey, courseId) {
+  if (typeof imageKey === "string" && imageKey.trim()) {
+    const raw = imageKey.trim();
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+    if (/^\/?uploads\//i.test(raw)) {
+      return `${API_BASE}/${raw.replace(/^\/+/, "")}`;
+    }
+
+    const normalizedKey = imageKey
+      .trim()
+      .toLowerCase()
+      .replace(/^.*[\\/]/, "")
+      .replace(/\.[a-z0-9]+$/i, "");
+
+    if (courseImageMap[normalizedKey]) {
+      return courseImageMap[normalizedKey];
+    }
+  }
+
+  const indexSeed =
+    typeof courseId === "number"
+      ? courseId
+      : Number.parseInt(String(courseId).replace(/\D/g, ""), 10);
+  const safeIndex = Number.isFinite(indexSeed)
+    ? Math.abs(indexSeed) % fallbackImages.length
+    : 0;
+
+  return fallbackImages[safeIndex];
+}
+
 function getUniqueValues(data, key) {
   return [...new Set(data.map((item) => item[key]).filter(Boolean))];
 }
@@ -91,7 +125,7 @@ function Courses() {
     () =>
       coursesData.map((course) => ({
         ...course,
-        img: courseImageMap[course.imageKey] || course1,
+        img: resolveCourseImage(course.imageKey, course.id || course._id),
         title: course.title || "Untitled Course",
         desc: course.desc || course.description || "No description",
         rating: Number(course.rating) || 0,
@@ -449,7 +483,7 @@ function Courses() {
                     </div>
                     <hr className="m-0" />
                     <div className="p-3">
-                      <Link to={`/coursedetail/${course.id}`} className="btn btn-outline-success w-100">
+                      <Link to={`/coursedetail/${course._id || course.id}`} className="btn btn-outline-success w-100">
                         Enroll Now
                       </Link>
                     </div>

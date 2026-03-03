@@ -1,6 +1,13 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+const hasAdminAccess = (user) => {
+  if (!user) return false;
+  if (user.isAdmin === true) return true;
+  if (typeof user.role === 'string' && user.role.toLowerCase() === 'admin') return true;
+  return false;
+};
+
 const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization || '';
@@ -38,7 +45,7 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.isAdmin) {
+  if (hasAdminAccess(req.user)) {
     return next();
   }
   return res.status(403).json({ 
@@ -47,4 +54,4 @@ const admin = (req, res, next) => {
   });
 };
 
-module.exports = { protect, admin };
+module.exports = { protect, admin, hasAdminAccess };

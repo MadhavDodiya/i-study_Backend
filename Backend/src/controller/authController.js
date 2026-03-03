@@ -15,7 +15,7 @@ const getCookieOptions = () => ({
 
 const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, isAdmin } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "name, email and password are required" });
@@ -30,7 +30,14 @@ const register = async (req, res, next) => {
       return res.status(409).json({ message: "user already exists" });
     }
 
-    const user = await User.create({ name, email, password });
+    const shouldCreateAdmin = isAdmin === true;
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      isAdmin: shouldCreateAdmin,
+    });
     const token = createToken(user._id);
 
     res.cookie("token", token, getCookieOptions());
@@ -42,6 +49,7 @@ const register = async (req, res, next) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
@@ -69,6 +77,17 @@ const login = async (req, res, next) => {
       return res.status(401).json({ message: "invalid credentials" });
     }
 
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "account is disabled" });
+    }
+
+    // Bootstrap: if no admin exists yet, promote first successful login user.
+    const adminExists = await User.exists({ isAdmin: true });
+    if (!adminExists && !user.isAdmin) {
+      user.isAdmin = true;
+      await user.save({ validateBeforeSave: false });
+    }
+
     const token = createToken(user._id);
     res.cookie("token", token, getCookieOptions());
 
@@ -79,6 +98,7 @@ const login = async (req, res, next) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const AdminLogin = ({ onLoginSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const AdminLogin = ({ onLoginSuccess, initialError = '' }) => {
+  const rawApiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_BASE = rawApiBase.replace(/\/+$/, '').replace(/\/api$/i, '');
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
 
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -19,6 +20,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
     confirmPassword: '',
   });
 
+  useEffect(() => {
+    setError(initialError);
+  }, [initialError]);
+
   // ✅ Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,7 +31,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -66,7 +71,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -74,6 +79,7 @@ const AdminLogin = ({ onLoginSuccess }) => {
           name: signupForm.name,
           email: signupForm.email,
           password: signupForm.password,
+          isAdmin: true,
         }),
       });
 

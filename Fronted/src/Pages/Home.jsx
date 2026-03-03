@@ -84,20 +84,38 @@ function Home() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [liveCourses, setLiveCourses] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchHomeData = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/content/home`);
-        if (!response.ok) {
+        const [homeResponse, courseResponse] = await Promise.all([
+          fetch(`${API_BASE}/api/content/home`),
+          fetch(`${API_BASE}/api/courses`),
+        ]);
+
+        if (!homeResponse.ok) {
           throw new Error("Failed to fetch home data");
         }
 
-        const data = await response.json();
+        const data = await homeResponse.json();
+        let coursesFromApi = [];
+        if (courseResponse.ok) {
+          const coursePayload = await courseResponse.json();
+          if (Array.isArray(coursePayload)) {
+            coursesFromApi = coursePayload;
+          } else if (Array.isArray(coursePayload.data)) {
+            coursesFromApi = coursePayload.data;
+          } else if (Array.isArray(coursePayload.courses)) {
+            coursesFromApi = coursePayload.courses;
+          }
+        }
+
         if (isMounted) {
           setHomeData(data);
+          setLiveCourses(coursesFromApi);
           setErrorMessage("");
         }
       } catch (error) {
@@ -121,10 +139,23 @@ function Home() {
 
   const safeHomeData = homeData && typeof homeData === "object" ? homeData : {};
 
+  const resolveCourseImage = (imageKey) => {
+    if (typeof imageKey !== "string" || !imageKey.trim()) return null;
+    const raw = imageKey.trim();
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^\/?uploads\//i.test(raw)) return `${API_BASE}/${raw.replace(/^\/+/, "")}`;
+    const normalized = raw
+      .toLowerCase()
+      .replace(/^.*[\\/]/, "")
+      .replace(/\.[a-z0-9]+$/i, "");
+    return imageMaps.course[normalized] || null;
+  };
+
   const categories = safeHomeData.categories || [];
-  const courses = (safeHomeData.courses || []).map((course) => ({
+  const sourceCourses = liveCourses.length > 0 ? liveCourses : (safeHomeData.courses || []);
+  const courses = sourceCourses.map((course) => ({
     ...course,
-    img: imageMaps.course[course.imageKey] || null,
+    img: resolveCourseImage(course.imageKey),
   }));
   const plans = (safeHomeData.plans || []).map((plan) => ({
     ...plan,
@@ -319,7 +350,9 @@ function Home() {
                       &#9733;&#9733;&#9733;&#9733;&#9733; ({c.rating})
                     </div>
 
-                    <button className="btn btn-outline-success w-100">Enroll Now</button>
+                    <Link to={`/coursedetail/${c._id || c.id}`} className="btn btn-outline-success w-100">
+                      Enroll Now
+                    </Link>
                   </div>
                 </div>
 
@@ -340,12 +373,12 @@ function Home() {
                   </h5>
 
                   <div className="d-flex gap-2 mt-3 flex-wrap card-hover-actions">
-                    <button className="btn btn-success">View Details</button>
+                    <Link to={`/coursedetail/${c._id || c.id}`} className="btn btn-success">View Details</Link>
                     <button className="btn btn-warning"><i className="fa fa-heart"></i></button>
                     <button className="btn btn-info"><i className="fa fa-share"></i></button>
                   </div>
 
-                  <button className="btn btn-outline-success w-100 mt-3">Enroll Now</button>
+                  <Link to={`/coursedetail/${c._id || c.id}`} className="btn btn-outline-success w-100 mt-3">Enroll Now</Link>
                 </div>
               </div>
             </div>

@@ -22,6 +22,33 @@ const courseImageMap = {
     course6,
 };
 
+function resolveCourseImage(imageKey) {
+    if (typeof imageKey !== "string" || !imageKey.trim()) {
+        return "";
+    }
+
+    const raw = imageKey.trim();
+    if (/^https?:\/\//i.test(raw)) {
+        return raw;
+    }
+    if (/^\/?uploads\//i.test(raw)) {
+        return `${API_BASE}/${raw.replace(/^\/+/, "")}`;
+    }
+
+    const normalizedKey = imageKey
+        .trim()
+        .toLowerCase()
+        .replace(/^.*[\\/]/, "")
+        .replace(/\.[a-z0-9]+$/i, "");
+
+    return courseImageMap[normalizedKey] || "";
+}
+
+const getCourseIdentifier = (course) => {
+    if (!course) return "";
+    return String(course._id || course.id || "").trim();
+};
+
 export default function CourseDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -37,27 +64,25 @@ export default function CourseDetail() {
 
         const fetchCourse = async () => {
             try {
-                const requestedId = Number(id);
-                let response;
-
-                if (Number.isInteger(requestedId) && requestedId > 0) {
-                    response = await fetch(`${API_BASE}/api/courses/${requestedId}`);
-                } else {
-                    response = await fetch(`${API_BASE}/api/courses`);
-                }
+                const requestedId = String(id || "").trim();
+                const response = requestedId
+                    ? await fetch(`${API_BASE}/api/courses/${requestedId}`)
+                    : await fetch(`${API_BASE}/api/courses`);
 
                 if (!response.ok) {
                     throw new Error("Failed to fetch course");
                 }
 
                 const data = await response.json();
-                const course = Array.isArray(data) ? data[0] : data;
+                const course = Array.isArray(data)
+                    ? data[0]
+                    : data?.data || data;
 
                 if (isMounted) {
                     if (course) {
                         setSelectedCourse({
                             ...course,
-                            img: courseImageMap[course.imageKey] || "",
+                            img: resolveCourseImage(course.imageKey),
                             rating: Number(course.rating) || 0,
                         });
                     } else {
@@ -98,13 +123,15 @@ export default function CourseDetail() {
 
                 const payload = await response.json();
                 const ids = (Array.isArray(payload.items) ? payload.items : [])
-                    .map((item) => Number(item.courseId))
-                    .filter((courseId) => Number.isInteger(courseId) && courseId > 0);
+                    .map((item) => String(item.courseId || "").trim())
+                    .filter(Boolean);
 
                 if (isMounted) {
                     setWishlistedIds(new Set(ids));
                 }
-            } catch (_error) {}
+            } catch {
+                // Ignore wishlist sync failures; page remains usable without it.
+            }
         };
 
         syncWishlist();
@@ -124,10 +151,11 @@ export default function CourseDetail() {
         "Full-Stack Development with Node.js"
     ];
 
-    const wishlisted = selectedCourse ? wishlistedIds.has(Number(selectedCourse.id)) : false;
+    const selectedCourseId = getCourseIdentifier(selectedCourse);
+    const wishlisted = Boolean(selectedCourseId && wishlistedIds.has(selectedCourseId));
 
     const handleAddToWishlist = async () => {
-        if (!selectedCourse) {
+        if (!selectedCourse || !selectedCourseId) {
             return;
         }
 
@@ -140,7 +168,7 @@ export default function CourseDetail() {
                     "Content-Type": "application/json",
                 },
                 credentials: "include",
-                body: JSON.stringify({ courseId: Number(selectedCourse.id) }),
+                body: JSON.stringify({ courseId: selectedCourseId }),
             });
 
             if (response.status === 401) {
@@ -152,7 +180,7 @@ export default function CourseDetail() {
                 throw new Error("Failed to add course to wishlist");
             }
 
-            setWishlistedIds((prev) => new Set([...prev, Number(selectedCourse.id)]));
+            setWishlistedIds((prev) => new Set([...prev, selectedCourseId]));
         } catch (error) {
             console.error("Wishlist add error:", error);
             setActionMessage("Unable to add course to wishlist.");
@@ -163,7 +191,7 @@ export default function CourseDetail() {
     };
 
     const handleAddToCart = async () => {
-        if (!selectedCourse) {
+        if (!selectedCourse || !selectedCourseId) {
             return;
         }
 
@@ -176,7 +204,7 @@ export default function CourseDetail() {
                     "Content-Type": "application/json",
                 },
                 credentials: "include",
-                body: JSON.stringify({ courseId: Number(selectedCourse.id), quantity: 1 }),
+                body: JSON.stringify({ courseId: selectedCourseId, quantity: 1 }),
             });
 
             if (response.status === 401) {

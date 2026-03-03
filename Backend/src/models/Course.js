@@ -2,12 +2,6 @@ const mongoose = require("mongoose");
 
 const courseSchema = new mongoose.Schema(
   {
-    id: {
-      type: Number,
-      required: true,
-      unique: true,
-      index: true,
-    },
     title: {
       type: String,
       required: true,
@@ -55,7 +49,7 @@ const courseSchema = new mongoose.Schema(
       default: 0,
     },
     rating: {
-      type: Number,
+      type: String,
       default: 0,
     },
     level: {
