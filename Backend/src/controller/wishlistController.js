@@ -18,6 +18,12 @@ const findCourseByInputId = async (rawCourseId) => {
   return null;
 };
 
+const resolveCanonicalCourseId = async (rawCourseId) => {
+  const course = await findCourseByInputId(rawCourseId);
+  if (!course) return null;
+  return String(course._id);
+};
+
 const findCoursesForWishlistItems = async (wishlistItems) => {
   const objectIds = [];
   const numericIds = [];
@@ -105,13 +111,18 @@ const addToWishlist = async (req, res, next) => {
 const removeFromWishlist = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const courseId = normalizeCourseIdInput(req.params.courseId);
+    const incomingCourseId = normalizeCourseIdInput(req.params.courseId);
 
-    if (!courseId) {
+    if (!incomingCourseId) {
       return res.status(400).json({ message: "invalid course id" });
     }
 
-    await Wishlist.deleteOne({ userId, courseId });
+    const canonicalCourseId = await resolveCanonicalCourseId(incomingCourseId);
+    if (!canonicalCourseId) {
+      return res.status(404).json({ message: "course not found" });
+    }
+
+    await Wishlist.deleteOne({ userId, courseId: canonicalCourseId });
     return getWishlist(req, res, next);
   } catch (error) {
     return next(error);

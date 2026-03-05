@@ -1,6 +1,14 @@
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 const Order = require('../models/Order');
+const mongoose = require('mongoose');
+const Course = require('../models/Course');
+
+const sanitizeUser = (userDoc) => {
+  if (!userDoc) return null;
+  const raw = typeof userDoc.toObject === 'function' ? userDoc.toObject() : userDoc;
+  const { password, ...safeUser } = raw;
+  return safeUser;
+};
 
 // Get all users
 const getUsers = async (req, res) => {
@@ -24,6 +32,13 @@ const getUsers = async (req, res) => {
 // Get user by ID
 const getUserById = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
     const user = await User.findById(req.params.id).select('-password');
     if (!user) {
       return res.status(404).json({
@@ -49,15 +64,17 @@ const getUserById = async (req, res) => {
 const addUserManually = async (req, res) => {
   try {
     const { name, email, password, isAdmin, isActive } = req.body;
+    const normalizedName = String(name || '').trim();
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    if (!name || !email || !password) {
+    if (!normalizedName || !normalizedEmail || !password) {
       return res.status(400).json({
         success: false,
         message: 'Name, email, and password are required',
       });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -65,13 +82,10 @@ const addUserManually = async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      password: hashedPassword,
+      name: normalizedName,
+      email: normalizedEmail,
+      password,
       isAdmin: isAdmin || false,
       isActive: isActive !== undefined ? isActive : true,
     });
@@ -79,7 +93,7 @@ const addUserManually = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'User added successfully',
-      data: user,
+      data: sanitizeUser(user),
     });
   } catch (error) {
     console.error('Add user error:', error);
@@ -94,11 +108,18 @@ const addUserManually = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
     const { name, email, isAdmin, isActive } = req.body;
     const updateData = {};
 
-    if (name) updateData.name = name;
-    if (email) updateData.email = email.toLowerCase();
+    if (typeof name === 'string' && name.trim()) updateData.name = name.trim();
+    if (typeof email === 'string' && email.trim()) updateData.email = email.trim().toLowerCase();
     if (isAdmin !== undefined) updateData.isAdmin = isAdmin;
     if (isActive !== undefined) updateData.isActive = isActive;
 
@@ -132,6 +153,13 @@ const updateUser = async (req, res) => {
 // Delete user
 const deleteUser = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
     const user = await User.findByIdAndDelete(req.params.id);
 
     if (!user) {
@@ -144,7 +172,7 @@ const deleteUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'User deleted successfully',
-      data: user,
+      data: sanitizeUser(user),
     });
   } catch (error) {
     console.error('Delete user error:', error);
@@ -181,6 +209,13 @@ const getOrders = async (req, res) => {
 // Update order status (checkout management)
 const updateOrderStatus = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid order id',
+      });
+    }
+
     const { status } = req.body || {};
     const allowedStatus = ['placed', 'paid', 'cancelled'];
 
@@ -222,7 +257,6 @@ const updateOrderStatus = async (req, res) => {
 // Get all courses
 const getCourses = async (req, res) => {
   try {
-    const Course = require('../models/Course');
     const courses = await Course.find({}).sort({ createdAt: -1 });
 
     res.status(200).json({

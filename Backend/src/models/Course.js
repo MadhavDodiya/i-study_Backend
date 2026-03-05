@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const courseSchema = new mongoose.Schema(
   {
+    id: {
+      type: Number,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
     title: {
       type: String,
       required: true,
@@ -49,8 +55,10 @@ const courseSchema = new mongoose.Schema(
       default: 0,
     },
     rating: {
-      type: String,
+      type: Number,
       default: 0,
+      min: 0,
+      max: 5,
     },
     level: {
       type: String,

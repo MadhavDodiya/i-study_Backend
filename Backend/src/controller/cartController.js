@@ -18,6 +18,12 @@ const findCourseByInputId = async (rawCourseId) => {
   return null;
 };
 
+const resolveCanonicalCourseId = async (rawCourseId) => {
+  const course = await findCourseByInputId(rawCourseId);
+  if (!course) return null;
+  return String(course._id);
+};
+
 const findCoursesForCartItems = async (cartItems) => {
   const objectIds = [];
   const numericIds = [];
@@ -127,10 +133,10 @@ const addToCart = async (req, res, next) => {
 const updateCartItemQuantity = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const courseId = normalizeCourseIdInput(req.params.courseId);
+    const incomingCourseId = normalizeCourseIdInput(req.params.courseId);
     const quantity = Number(req.body.quantity);
 
-    if (!courseId) {
+    if (!incomingCourseId) {
       return res.status(400).json({ message: "invalid course id" });
     }
 
@@ -138,7 +144,12 @@ const updateCartItemQuantity = async (req, res, next) => {
       return res.status(400).json({ message: "quantity must be greater than 0" });
     }
 
-    const item = await Cart.findOne({ userId, courseId });
+    const canonicalCourseId = await resolveCanonicalCourseId(incomingCourseId);
+    if (!canonicalCourseId) {
+      return res.status(404).json({ message: "course not found" });
+    }
+
+    const item = await Cart.findOne({ userId, courseId: canonicalCourseId });
     if (!item) {
       return res.status(404).json({ message: "cart item not found" });
     }
@@ -155,13 +166,18 @@ const updateCartItemQuantity = async (req, res, next) => {
 const removeFromCart = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const courseId = normalizeCourseIdInput(req.params.courseId);
+    const incomingCourseId = normalizeCourseIdInput(req.params.courseId);
 
-    if (!courseId) {
+    if (!incomingCourseId) {
       return res.status(400).json({ message: "invalid course id" });
     }
 
-    await Cart.deleteOne({ userId, courseId });
+    const canonicalCourseId = await resolveCanonicalCourseId(incomingCourseId);
+    if (!canonicalCourseId) {
+      return res.status(404).json({ message: "course not found" });
+    }
+
+    await Cart.deleteOne({ userId, courseId: canonicalCourseId });
     return getCart(req, res, next);
   } catch (error) {
     return next(error);

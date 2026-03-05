@@ -1,6 +1,23 @@
 const Course = require("../models/Course");
+const mongoose = require("mongoose");
 
 const allowedLevels = new Set(["beginner", "intermediate", "advanced"]);
+
+const buildCourseSelector = (rawId) => {
+  const id = String(rawId || "").trim();
+  if (!id) return null;
+
+  if (mongoose.isValidObjectId(id)) {
+    return { _id: id };
+  }
+
+  const numericId = Number(id);
+  if (Number.isInteger(numericId) && numericId > 0) {
+    return { id: numericId };
+  }
+
+  return null;
+};
 
 const normalizeImageKey = (value) => {
   if (typeof value !== "string") return "";
@@ -146,7 +163,15 @@ exports.getCourses = async (req, res) => {
 // ===============================
 exports.getCourseById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
+    const selector = buildCourseSelector(req.params.id);
+    if (!selector) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course id",
+      });
+    }
+
+    const course = await Course.findOne(selector);
 
     if (!course) {
       return res.status(404).json({
@@ -225,8 +250,16 @@ exports.updateCourse = async (req, res) => {
       });
     }
 
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
+    const selector = buildCourseSelector(req.params.id);
+    if (!selector) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course id",
+      });
+    }
+
+    const course = await Course.findOneAndUpdate(
+      selector,
       data,
       { new: true, runValidators: true }
     );
@@ -263,7 +296,15 @@ exports.updateCourse = async (req, res) => {
 // ===============================
 exports.deleteCourse = async (req, res) => {
   try {
-    const course = await Course.findByIdAndDelete(req.params.id);
+    const selector = buildCourseSelector(req.params.id);
+    if (!selector) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course id",
+      });
+    }
+
+    const course = await Course.findOneAndDelete(selector);
 
     if (!course) {
       return res.status(404).json({

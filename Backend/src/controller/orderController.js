@@ -139,6 +139,10 @@ const getMyOrderById = async (req, res, next) => {
     const userId = req.user._id;
     const orderId = req.params.id;
 
+    if (!mongoose.isValidObjectId(orderId)) {
+      return res.status(400).json({ message: "invalid order id" });
+    }
+
     const order = await Order.findOne({ _id: orderId, userId }).lean();
     if (!order) {
       return res.status(404).json({ message: "order not found" });

@@ -15,9 +15,11 @@ const getCookieOptions = () => ({
 
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, isAdmin } = req.body;
+    const { name, email, password } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedName = String(name || "").trim();
 
-    if (!name || !email || !password) {
+    if (!normalizedName || !normalizedEmail || !password) {
       return res.status(400).json({ message: "name, email and password are required" });
     }
 
@@ -25,18 +27,15 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: "password must be at least 6 characters" });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(409).json({ message: "user already exists" });
     }
 
-    const shouldCreateAdmin = isAdmin === true;
-
     const user = await User.create({
-      name,
-      email,
+      name: normalizedName,
+      email: normalizedEmail,
       password,
-      isAdmin: shouldCreateAdmin,
     });
     const token = createToken(user._id);
 
@@ -60,12 +59,13 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return res.status(400).json({ message: "email and password are required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+    const user = await User.findOne({ email: normalizedEmail }).select("+password");
 
     if (!user) {
       return res.status(401).json({ message: "invalid credentials" });
