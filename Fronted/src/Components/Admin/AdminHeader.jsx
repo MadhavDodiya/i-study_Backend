@@ -3,6 +3,29 @@ import React, { useState, useRef, useEffect } from 'react';
 const AdminHeader = ({ onMenuClick, onLogout, user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications] = useState(() => {
+    const defaults = [
+      { title: 'New user registered', desc: 'Sarah K. just signed up', time: '2m ago', unread: true },
+      { title: 'Course published', desc: 'React Masterclass is live', time: '1h ago', unread: true },
+      { title: 'Order #1082 placed', desc: '$129 - UI Design Course', time: '3h ago', unread: false },
+    ];
+
+    try {
+      const dynamicRaw = JSON.parse(localStorage.getItem('admin_notifications') || '[]');
+      const dynamic = Array.isArray(dynamicRaw)
+        ? dynamicRaw.map((item) => ({
+            title: item.title || 'System notification',
+            desc: item.desc || '',
+            time: item.time ? new Date(item.time).toLocaleString() : 'just now',
+            unread: item.unread !== false,
+          }))
+        : [];
+
+      return [...dynamic, ...defaults];
+    } catch {
+      return defaults;
+    }
+  });
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
 
@@ -15,11 +38,7 @@ const AdminHeader = ({ onMenuClick, onLogout, user }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const notifications = [
-    { title: 'New user registered', desc: 'Sarah K. just signed up', time: '2m ago', unread: true },
-    { title: 'Course published', desc: 'React Masterclass is live', time: '1h ago', unread: true },
-    { title: 'Order #1082 placed', desc: '$129 — UI Design Course', time: '3h ago', unread: false },
-  ];
+  const unreadCount = notifications.filter((item) => item.unread).length;
 
   return (
     <>
@@ -46,11 +65,10 @@ const AdminHeader = ({ onMenuClick, onLogout, user }) => {
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        {/* ✅ Left Side - Menu and Search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button 
-            onClick={onMenuClick} 
-            className="ah-iconbtn" 
+          <button
+            onClick={onMenuClick}
+            className="ah-iconbtn"
             style={{ display: window.innerWidth <= 768 ? 'flex' : 'none' }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -75,9 +93,7 @@ const AdminHeader = ({ onMenuClick, onLogout, user }) => {
           />
         </div>
 
-        {/* ✅ Right Side - Notifications and Profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
-          {/* ✅ Notifications */}
           <div style={{ position: 'relative' }} ref={notifRef}>
             <button
               className="ah-iconbtn"
@@ -103,7 +119,7 @@ const AdminHeader = ({ onMenuClick, onLogout, user }) => {
                 fontSize: '10px',
                 fontWeight: '700',
               }}>
-                3
+                {unreadCount}
               </span>
             </button>
 
@@ -119,11 +135,15 @@ const AdminHeader = ({ onMenuClick, onLogout, user }) => {
                     <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>{notif.time}</div>
                   </div>
                 ))}
+                {notifications.length === 0 ? (
+                  <div className="ah-notif-item">
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>No notifications</div>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
 
-          {/* ✅ Profile Dropdown */}
           <div style={{ position: 'relative' }} ref={dropdownRef}>
             <button
               className="ah-iconbtn"

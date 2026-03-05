@@ -387,7 +387,9 @@ function Home() {
       </div>
 
       <div className="container text-center py-4 pb-5 see-more-wrap">
-        <button className="btn1 btn1-lg">See More Courses</button>
+        <Link to="/courses" className="btn1 btn1-lg text-decoration-none">
+          See More Courses
+        </Link>
       </div>
 
       <div className="container text-center mt-5 mb-5">

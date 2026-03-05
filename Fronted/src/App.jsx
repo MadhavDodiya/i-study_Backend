@@ -9,6 +9,7 @@ import Register from './Pages/Register.jsx';
 import Login from './Pages/Login.jsx';
 import Cart from './Pages/Cart.jsx';
 import Checkout from './Pages/Checkout.jsx';
+import UserPanel from './Pages/UserPanel.jsx';
 import Footer from './Components/Footer';
 import Preloader from './Components/Preloader.jsx';
 
@@ -133,6 +134,16 @@ function App() {
             <>
               <Header />
               <Checkout />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/user/panel"
+          element={
+            <>
+              <Header />
+              <UserPanel />
               <Footer />
             </>
           }

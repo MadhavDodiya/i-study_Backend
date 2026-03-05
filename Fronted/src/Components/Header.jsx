@@ -225,6 +225,17 @@ function Header() {
     setShowSubMenu(!showSubMenu);
   };
 
+  const isPathActive = (paths = []) => {
+    return paths.some((path) => {
+      if (path === "/") {
+        return location.pathname === "/";
+      }
+      return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    });
+  };
+
+  const navLinkClass = (paths = []) => `nav-link ${isPathActive(paths) ? "active" : ""}`;
+
   return (
     <>
       <div className="header-topbar text-black small">
@@ -289,13 +300,13 @@ function Header() {
           <div className="collapse navbar-collapse pb-2 pb-xl-0" id="navMenu">
             <ul className="navbar-nav me-xl-auto gap-lg-3">
               <li className="nav-item">
-                <Link className="nav-link" to="/">Home</Link>
+                <Link className={navLinkClass(["/"])} to="/">Home</Link>
               </li>
 
               <li className="nav-item dropdown">
                 <button
                   id="coursesDropdown"
-                  className="nav-link dropdown-toggle btn btn-link"
+                  className={`nav-link dropdown-toggle btn btn-link ${isPathActive(["/courses", "/coursedetail"]) ? "active" : ""}`}
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
@@ -317,7 +328,7 @@ function Header() {
 
                     <ul className={`dropdown-menu sub-menu ${showSubMenu ? "show" : ""}`}>
                       <li>
-                        <Link className={`dropdown-item ${location.pathname === "/courses" ? "active" : ""}`} to="/courses">
+                        <Link className={`dropdown-item ${isPathActive(["/courses"]) ? "active" : ""}`} to="/courses">
                           courses
                         </Link>
                       </li>
@@ -517,11 +528,11 @@ function Header() {
                         Checkout
                       </Link>
 
-                      <Link className="dropdown-item" to="/cart">
-                        Cart
-                      </Link>
+                    <Link className="dropdown-item" to="/cart">
+                      Cart
+                    </Link>
 
-                      <Link className="dropdown-item" to="/wishlist">
+                    <Link className="dropdown-item" to="/wishlist">
                         Wishlist
                       </Link>
                     </div>
@@ -661,6 +672,14 @@ function Header() {
                 {currentUser ? (
                   <>
                     <span className="small text-dark">Hi, {currentUser.name}</span>
+                    <Link className={`btn d-none d-sm-block ${isPathActive(["/user/panel"]) ? "btn-success" : "btn-outline-success"}`} to="/user/panel">
+                      My Panel
+                    </Link>
+                    {currentUser.isAdmin ? (
+                      <Link className={`btn d-none d-sm-block ${isPathActive(["/admin"]) ? "btn-success" : "btn-dark"}`} to="/admin/dashboard">
+                        Admin
+                      </Link>
+                    ) : null}
                     <button
                       type="button"
                       className="btn btn-outline-danger d-none d-sm-block"
@@ -670,8 +689,8 @@ function Header() {
                   </>
                 ) : (
                   <>
-                    <Link className="btn btn-outline-success d-none d-sm-block" to="/login">Login</Link>
-                    <Link className="btn btn-success" to="/register">Register</Link>
+                    <Link className={`btn d-none d-sm-block ${isPathActive(["/login"]) ? "btn-success" : "btn-outline-success"}`} to="/login">Login</Link>
+                    <Link className={`btn ${isPathActive(["/register"]) ? "btn-dark" : "btn-success"}`} to="/register">Register</Link>
                   </>
                 )}
               </div>
